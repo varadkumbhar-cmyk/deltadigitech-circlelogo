@@ -1,0 +1,3375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CircleLogo 3.5 - Delta Digitech Enterprise Bulk Circular Logo Utility | Background & Shape Composer</title>
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4F46E5">
+  <meta name="description" content="Production-ready bulk circular logo generator, background & shape composer, and transparent PNG exporter by Delta Digitech. Free Cloudflare Pages deployment ready.">
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <!-- JSZip for Bulk ZIP packaging -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <!-- Google Fonts Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #F8FAFC;
+      color: #0F172A;
+      user-select: none;
+    }
+    /* Checkerboard patterns for transparency visualization */
+    .checker-bg {
+      background-color: #F1F5F9;
+      background-image: 
+        linear-gradient(45deg, #E2E8F0 25%, transparent 25%), 
+        linear-gradient(-45deg, #E2E8F0 25%, transparent 25%), 
+        linear-gradient(45deg, transparent 75%, #E2E8F0 75%), 
+        linear-gradient(-45deg, transparent 75%, #E2E8F0 75%);
+      background-size: 20px 20px;
+      background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+    }
+    .checker-dark {
+      background-color: #1E293B;
+      background-image: 
+        linear-gradient(45deg, #0F172A 25%, transparent 25%), 
+        linear-gradient(-45deg, #0F172A 25%, transparent 25%), 
+        linear-gradient(45deg, transparent 75%, #0F172A 75%), 
+        linear-gradient(-45deg, transparent 75%, #0F172A 75%);
+      background-size: 20px 20px;
+      background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+    }
+    .checker-subtle {
+      background-color: #FFFFFF;
+      background-image: 
+        linear-gradient(45deg, #F1F5F9 25%, transparent 25%), 
+        linear-gradient(-45deg, #F1F5F9 25%, transparent 25%), 
+        linear-gradient(45deg, transparent 75%, #F1F5F9 75%), 
+        linear-gradient(-45deg, transparent 75%, #F1F5F9 75%);
+      background-size: 14px 14px;
+      background-position: 0 0, 0 7px, 7px -7px, -7px 0px;
+    }
+    /* Custom range slider */
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 100%;
+      background: transparent;
+    }
+    input[type=range]:focus {
+      outline: none;
+    }
+    input[type=range]::-webkit-slider-runnable-track {
+      width: 100%;
+      height: 6px;
+      cursor: pointer;
+      background: #E2E8F0;
+      border-radius: 9999px;
+      transition: background 0.15s ease;
+    }
+    input[type=range]:hover::-webkit-slider-runnable-track {
+      background: #CBD5E1;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      height: 18px;
+      width: 18px;
+      border-radius: 50%;
+      background: #4F46E5;
+      cursor: grab;
+      -webkit-appearance: none;
+      margin-top: -6px;
+      box-shadow: 0 2px 5px rgba(79, 70, 229, 0.35), 0 0 0 2px #FFFFFF;
+      transition: transform 0.1s ease, background 0.15s ease;
+    }
+    input[type=range]:active::-webkit-slider-thumb {
+      cursor: grabbing;
+      transform: scale(1.15);
+      background: #4338CA;
+    }
+    input[type=range]::-moz-range-track {
+      width: 100%;
+      height: 6px;
+      cursor: pointer;
+      background: #E2E8F0;
+      border-radius: 9999px;
+    }
+    input[type=range]::-moz-range-thumb {
+      height: 18px;
+      width: 18px;
+      border-radius: 50%;
+      background: #4F46E5;
+      cursor: grab;
+      border: 2px solid #FFFFFF;
+      box-shadow: 0 2px 5px rgba(79, 70, 229, 0.35);
+    }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94A3B8;
+    }
+    .canvas-grab {
+      cursor: grab;
+    }
+    .canvas-grab:active {
+      cursor: grabbing;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-50 antialiased selection:bg-indigo-100 selection:text-indigo-900">
+
+  <!-- ================= TOP NAVIGATION WITH DUAL BRANDING ================= -->
+  <header class="h-16 bg-white border-b border-slate-200 px-4 sm:px-6 flex items-center justify-between z-30 shrink-0 sticky top-0 shadow-sm">
+    
+    <!-- Left: Application Identity -->
+    <div class="flex items-center space-x-3">
+      <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-600 via-indigo-500 to-violet-500 flex items-center justify-center text-white shadow-md shadow-indigo-100 ring-2 ring-indigo-50 shrink-0">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M12 7v10"></path>
+          <path d="M8 12h8"></path>
+        </svg>
+      </div>
+      <div>
+        <div class="flex items-center space-x-2">
+          <span class="font-bold text-lg tracking-tight text-slate-900">Circle<span class="text-indigo-600">Logo</span></span>
+          <span class="text-[10px] font-bold bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full border border-indigo-200 uppercase tracking-wide">3.5 Composer</span>
+        </div>
+        <p class="text-xs text-slate-500 hidden sm:block">Bulk circular logo processor & Background & Shape Composer</p>
+      </div>
+    </div>
+
+    <!-- Center Status / Badge (Desktop) -->
+    <div id="fileStatusBadge" class="hidden xl:flex items-center space-x-2.5 px-3.5 py-1.5 bg-slate-100/90 rounded-full border border-slate-200 text-xs text-slate-700">
+      <span class="w-2.5 h-2.5 rounded-full bg-emerald-500" id="statusDot"></span>
+      <span id="statusFilename" class="font-semibold">0 logos</span>
+      <span class="text-slate-400">|</span>
+      <span id="statusDimensions" class="text-slate-500 font-medium">0 selected</span>
+    </div>
+
+    <!-- Right: Actions & Official Delta Digitech Corporate Branding -->
+    <div class="flex items-center space-x-3 sm:space-x-4">
+      
+      <!-- Core Action Buttons -->
+      <div class="flex items-center space-x-2">
+        <!-- Hidden File Input supporting multiple files -->
+        <input type="file" id="logoFileInput" accept="image/png,image/jpeg,image/webp,image/svg+xml" multiple class="hidden">
+        
+        <!-- Upload Logo Button -->
+        <button id="navUploadBtn" class="inline-flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 hover:border-slate-400 transition-colors focus:ring-2 focus:ring-indigo-500 focus:outline-none shadow-sm">
+          <svg class="w-4 h-4 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+          <span class="hidden sm:inline">Upload Logo</span>
+          <span class="sm:hidden">Upload</span>
+        </button>
+
+        <!-- Reset / Clear Button -->
+        <button id="navResetBtn" title="Reset all adjustments or clear logos" class="inline-flex items-center space-x-1 px-2.5 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors focus:outline-none">
+          <svg class="w-4 h-4 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+            <path d="M3 3v5h5"></path>
+          </svg>
+          <span>Reset</span>
+        </button>
+
+        <!-- Copy PNG Button -->
+        <button id="navCopyBtn" title="Copy active logo to clipboard" class="hidden md:inline-flex items-center space-x-1.5 px-3 py-2 rounded-lg text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors focus:ring-2 focus:ring-slate-300 focus:outline-none shadow-sm">
+          <svg class="w-4 h-4 text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+          <span>Copy PNG</span>
+        </button>
+
+        <!-- Export PNG Button (Primary Action) -->
+        <button id="navExportBtn" class="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-lg text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 transition-colors shadow-md shadow-indigo-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span id="navExportLabel">Export PNG</span>
+        </button>
+      </div>
+
+      <!-- Visual Separation Divider -->
+      <div class="h-8 w-px bg-slate-200 hidden sm:block"></div>
+
+      <!-- Official Delta Digitech Corporate Branding Block (Exact Supplied Company Asset) -->
+      <div class="flex items-center py-1 px-2.5 bg-slate-50 hover:bg-slate-100/90 rounded-xl border border-slate-200/90 transition shadow-2xs" title="Delta Digitech Corporate Portal">
+        <img id="deltaDigitechBrandLogo" src="data:image/png;base64,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" alt="Delta Digitech Pvt Ltd" class="h-8 sm:h-9 w-auto object-contain" />
+      </div>
+
+      <!-- Hidden SVG definitions preserved for legacy reference -->
+      <svg class="hidden" width="0" height="0">
+        <defs>
+          <linearGradient id="nav_dg1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#2563EB" /><stop offset="100%" stop-color="#06B6D4" /></linearGradient>
+          <linearGradient id="nav_dg2" x1="100%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#4F46E5" /><stop offset="100%" stop-color="#2563EB" /></linearGradient>
+          <linearGradient id="nav_dg3" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="#06B6D4" /><stop offset="100%" stop-color="#3B82F6" /></linearGradient>
+        </defs>
+      </svg>
+
+    </div>
+  </header>
+
+  <!-- ================= MAIN LAYOUT ================= -->
+  <div class="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
+
+    <!-- ---------------- LEFT SIDEBAR: BATCH & GLOBAL SETTINGS ---------------- -->
+    <aside id="leftPanel" class="w-full lg:w-80 xl:w-84 bg-white border-r border-slate-200 flex flex-col shrink-0 overflow-y-auto z-10 shadow-sm order-2 lg:order-1 max-h-[45vh] lg:max-h-none">
+      <div class="p-5 space-y-6">
+
+        <!-- Batch Control Header -->
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <h2 class="text-sm font-bold text-slate-900 tracking-tight flex items-center space-x-1.5">
+              <span>Batch Settings</span>
+            </h2>
+            <span class="text-[10px] font-semibold bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded border border-indigo-200">Global</span>
+          </div>
+          <p class="text-xs text-slate-500">Apply uniform styling and dimensions across logos.</p>
+        </div>
+
+        <!-- Preset Samples Bar (Horizontal, Square, Vertical, Vector) -->
+        <div>
+          <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Preset Samples</label>
+          <div class="grid grid-cols-4 gap-1.5">
+            <button id="sampleHorizontalBtn" class="px-2 py-1.5 text-[11px] font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-md transition text-center truncate border border-slate-200" title="Horizontal rectangular logo (3.5:1)">
+              Horizontal
+            </button>
+            <button id="sampleSquareBtn" class="px-2 py-1.5 text-[11px] font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-md transition text-center truncate border border-slate-200" title="Square badge logo (1:1)">
+              Square
+            </button>
+            <button id="sampleVerticalBtn" class="px-2 py-1.5 text-[11px] font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-md transition text-center truncate border border-slate-200" title="Vertical tall logo (1:2.2)">
+              Vertical
+            </button>
+            <button id="sampleVectorBtn" class="px-2 py-1.5 text-[11px] font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-md transition text-center truncate border border-slate-200" title="Vector monogram emblem">
+              Vector
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick 1-Click Multi Sample Loader (12+ Logos) -->
+        <div class="bg-indigo-50/60 border border-indigo-100 rounded-xl p-3.5 space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="text-[11px] font-bold text-indigo-900 uppercase tracking-wider flex items-center space-x-1">
+              <svg class="w-3.5 h-3.5 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="12" y1="18" x2="12" y2="12"></line>
+                <line x1="9" y1="15" x2="15" y2="15"></line>
+              </svg>
+              <span>Instant Test Pack</span>
+            </label>
+            <span class="text-[10px] font-semibold text-indigo-600">12 Logos</span>
+          </div>
+          <p class="text-[11px] text-indigo-700 leading-snug">Test bulk processing with 12 diverse brand logos (horizontal, vertical, square, vector).</p>
+          <button id="load12SamplesBtn" class="w-full py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-lg shadow-sm transition flex items-center justify-center space-x-1.5">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            <span>Load 12 Sample Logos</span>
+          </button>
+        </div>
+
+        <!-- Batch Fit Modes -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Batch Fit Mode</label>
+            <span class="text-[11px] text-slate-400">All / Selected</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2 bg-slate-100 p-1 rounded-lg border border-slate-200">
+            <button id="batchFitContainBtn" class="flex items-center justify-center space-x-1.5 py-2 px-3 rounded-md text-xs font-medium text-slate-600 hover:text-slate-900 transition-all">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="9"></circle>
+                <rect x="7" y="9" width="10" height="6" rx="1"></rect>
+              </svg>
+              <span>Contain</span>
+            </button>
+            <button id="batchFitCoverBtn" class="flex items-center justify-center space-x-1.5 py-2 px-3 rounded-md text-xs font-semibold bg-white text-indigo-700 shadow-sm border border-slate-200 transition-all">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="9"></circle>
+                <circle cx="12" cy="12" r="6" stroke-dasharray="2 2"></circle>
+              </svg>
+              <span>Cover</span>
+            </button>
+          </div>
+          <p class="text-[11px] text-slate-500 italic">Cover fills circle frame; Contain fits without edge clipping.</p>
+        </div>
+
+        <!-- Global Output Resolution -->
+        <div class="space-y-2">
+          <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">Export Resolution</label>
+          <div class="grid grid-cols-2 gap-2" id="resolutionGroup">
+            <!-- 256x256 -->
+            <button data-size="256" class="res-card p-2.5 rounded-xl border border-slate-200 bg-white hover:border-slate-300 text-left transition relative flex flex-col">
+              <span class="text-xs font-bold text-slate-800">256 &times; 256</span>
+              <span class="text-[10px] text-slate-400">Favicon / Avatar</span>
+            </button>
+            <!-- 512x512 (Default) -->
+            <button data-size="512" class="res-card p-2.5 rounded-xl border-2 border-indigo-600 bg-indigo-50/40 text-left transition relative flex flex-col">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-indigo-900">512 &times; 512</span>
+                <span class="text-[9px] bg-indigo-600 text-white font-semibold px-1.5 py-0.2 rounded-full">Default</span>
+              </div>
+              <span class="text-[10px] text-indigo-700 font-medium">Standard / App Icon</span>
+            </button>
+            <!-- 1024x1024 -->
+            <button data-size="1024" class="res-card p-2.5 rounded-xl border border-slate-200 bg-white hover:border-slate-300 text-left transition relative flex flex-col">
+              <span class="text-xs font-bold text-slate-800">1024 &times; 1024</span>
+              <span class="text-[10px] text-slate-400">High-Res / Social</span>
+            </button>
+            <!-- 2048x2048 -->
+            <button data-size="2048" class="res-card p-2.5 rounded-xl border border-slate-200 bg-white hover:border-slate-300 text-left transition relative flex flex-col">
+              <span class="text-xs font-bold text-slate-800">2048 &times; 2048</span>
+              <span class="text-[10px] text-slate-400">Ultra HD / Print</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Global Background Fill -->
+        <div class="space-y-2">
+          <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">Background Fill</label>
+          <div class="grid grid-cols-3 gap-2">
+            <button id="bgTransparentBtn" class="py-2 px-2 rounded-lg border-2 border-indigo-600 bg-indigo-50/50 text-indigo-900 text-xs font-semibold flex items-center justify-center space-x-1.5 transition">
+              <span class="w-3 h-3 rounded-full border border-slate-300 checker-subtle inline-block"></span>
+              <span>Transparent</span>
+            </button>
+            <button id="bgWhiteBtn" class="py-2 px-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium flex items-center justify-center space-x-1.5 transition">
+              <span class="w-3 h-3 rounded-full border border-slate-300 bg-white inline-block"></span>
+              <span>White</span>
+            </button>
+            <button id="bgBlackBtn" class="py-2 px-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium flex items-center justify-center space-x-1.5 transition">
+              <span class="w-3 h-3 rounded-full border border-slate-300 bg-slate-900 inline-block"></span>
+              <span>Dark</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="h-px bg-slate-200"></div>
+
+        <!-- Batch Action Buttons -->
+        <div class="space-y-2">
+          <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">Apply Settings</label>
+          <button id="applySettingsSelectedBtn" class="w-full py-2.5 px-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold text-xs rounded-lg border border-indigo-200 transition flex items-center justify-center space-x-1.5">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Apply Settings to Selected</span>
+          </button>
+          <button id="applySettingsAllBtn" class="w-full py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs rounded-lg border border-slate-200 transition flex items-center justify-center space-x-1.5">
+            <span>Apply to All Logos</span>
+          </button>
+        </div>
+
+        <!-- Global Summary -->
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-1.5 text-xs">
+          <div class="flex justify-between text-slate-500">
+            <span>Frame Mask:</span>
+            <span class="font-medium text-slate-800">1:1 Circular</span>
+          </div>
+          <div class="flex justify-between text-slate-500">
+            <span>Resolution:</span>
+            <span id="specDimensions" class="font-mono font-medium text-slate-800">512 &times; 512 px</span>
+          </div>
+          <div class="flex justify-between text-slate-500">
+            <span>Format:</span>
+            <span class="font-medium text-emerald-600">PNG (32-bit Transparent)</span>
+          </div>
+        </div>
+
+      </div>
+    </aside>
+
+    <!-- ---------------- CENTER: MAIN WORKSPACE (BULK DASHBOARD) ---------------- -->
+    <main class="flex-1 flex flex-col bg-slate-100/60 overflow-hidden relative order-1 lg:order-2">
+
+      <!-- Bulk Dashboard Toolbar -->
+      <div class="h-14 bg-white border-b border-slate-200 px-4 sm:px-6 flex items-center justify-between shrink-0 z-10 flex-wrap gap-2">
+        
+        <!-- Left: Selection & Filtering -->
+        <div class="flex items-center space-x-2 text-xs">
+          <span id="selectionSummaryLabel" class="font-bold text-slate-800 text-sm mr-2">0 logos uploaded</span>
+          <button id="selectAllBtn" class="px-2.5 py-1 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md border border-slate-200 transition">
+            Select All
+          </button>
+          <button id="deselectAllBtn" class="px-2.5 py-1 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md border border-slate-200 transition">
+            Deselect All
+          </button>
+          <button id="invertSelectionBtn" class="hidden sm:inline-block px-2.5 py-1 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md border border-slate-200 transition">
+            Invert Selection
+          </button>
+          <button id="removeSelectedBtn" class="px-2.5 py-1 text-xs font-medium text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-md border border-rose-200 transition flex items-center space-x-1">
+            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+            </svg>
+            <span>Remove Selected</span>
+          </button>
+        </div>
+
+        <!-- Right: Bulk Export Actions -->
+        <div class="flex items-center space-x-2">
+          <!-- Add More Button -->
+          <button id="addMoreLogosBtn" class="inline-flex items-center space-x-1.5 px-3 py-1.5 text-xs font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg transition">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span>Add More</span>
+          </button>
+
+          <!-- Export Selected ZIP Button -->
+          <button id="exportSelectedBtn" class="inline-flex items-center space-x-1.5 px-3.5 py-1.5 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg transition shadow-xs">
+            <svg class="w-3.5 h-3.5 text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            <span>Export Selected</span>
+          </button>
+
+          <!-- Export All ZIP Button -->
+          <button id="exportAllMainBtn" class="inline-flex items-center space-x-1.5 px-3.5 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition shadow-sm shadow-indigo-100">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            <span>Export All</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Main Logo Grid Container / Scrollable Stage -->
+      <div id="gridContainer" class="flex-1 overflow-y-auto p-4 sm:p-6">
+        
+        <!-- Empty State Overlay -->
+        <div id="emptyStateOverlay" class="max-w-xl mx-auto my-12 bg-white rounded-2xl border-2 border-dashed border-slate-300 p-8 text-center shadow-lg">
+          <div class="w-16 h-16 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-4 ring-8 ring-indigo-50/50">
+            <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="16"></line>
+              <line x1="8" y1="12" x2="16" y2="12"></line>
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-1">Drop multiple logos here or browse files</h3>
+          <p class="text-sm text-slate-500 mb-2">Upload 10+ logos and process them together.</p>
+          <p class="text-xs text-slate-400 mb-6">Supports 10, 20, 50, 100+ files in PNG, JPG, JPEG, WebP and SVG format.</p>
+          
+          <div class="flex flex-col sm:flex-row items-center justify-center gap-3 mb-6">
+            <button id="emptyUploadBtn" class="w-full sm:w-auto px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm rounded-xl shadow-md shadow-indigo-100 transition flex items-center justify-center space-x-2">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+              <span>Browse Files</span>
+            </button>
+
+            <button id="emptyLoad12Btn" class="w-full sm:w-auto px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-sm rounded-xl border border-slate-200 transition flex items-center justify-center space-x-2">
+              <svg class="w-4 h-4 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+              <span>Load 12 Diverse Samples</span>
+            </button>
+          </div>
+
+          <!-- Quick Individual Sample Chips for Testing -->
+          <div class="border-t border-slate-100 pt-4">
+            <p class="text-xs font-semibold text-slate-500 mb-2">Or test single sample shapes:</p>
+            <div class="flex flex-wrap justify-center gap-2">
+              <button id="emptySampleHBtn" class="px-3 py-1.5 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg border border-slate-200 transition">
+                Horizontal Logo
+              </button>
+              <button id="emptySampleSqBtn" class="px-3 py-1.5 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg border border-slate-200 transition">
+                Square Badge
+              </button>
+              <button id="emptySampleVBtn" class="px-3 py-1.5 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg border border-slate-200 transition">
+                Vertical Logo
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Logo Grid List -->
+        <div id="logoGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4 hidden">
+          <!-- Dynamically populated logo cards -->
+        </div>
+
+      </div>
+
+      <!-- Bottom Status Bar with Delta Digitech Corporate Attribution -->
+      <footer class="h-10 bg-white border-t border-slate-200 px-4 sm:px-6 flex items-center justify-between text-xs text-slate-500 shrink-0">
+        <div class="flex items-center space-x-3 truncate">
+          <span id="footerTotalLabel">0 logos loaded</span>
+          <span class="text-slate-300">&bull;</span>
+          <span id="footerSelectedLabel">0 selected</span>
+          <span class="text-slate-300">&bull;</span>
+          <span id="footerExportResLabel">Resolution: 512 &times; 512</span>
+        </div>
+        <div class="flex items-center space-x-3 text-slate-500 shrink-0">
+          <span class="font-medium text-slate-600 hidden md:inline">CircleLogo | An internal utility by Delta Digitech</span>
+          <span class="text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full">Cloudflare Pages Free Ready</span>
+        </div>
+      </footer>
+
+    </main>
+
+  </div>
+
+  <!-- ================= INDIVIDUAL LOGO EDITING MODAL WORKSPACE WITH 3 TABS ================= -->
+  <!-- Contains LOGO, BACKGROUND, and SHAPES tabs inside the individual logo workspace -->
+  <div id="editorModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 hidden">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-6xl h-[94vh] max-h-[900px] flex flex-col overflow-hidden border border-slate-200">
+      
+      <!-- Editor Top Bar -->
+      <div class="h-14 bg-white border-b border-slate-200 px-5 flex items-center justify-between shrink-0">
+        <!-- Logo Overview Card with thumbnail and replace button -->
+        <div class="flex items-center space-x-3 overflow-hidden">
+          <div id="thumbPreviewBox" class="w-9 h-9 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center p-0.5 overflow-hidden shrink-0 checker-subtle">
+            <svg id="emptyThumbIcon" class="w-5 h-5 text-slate-300 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <circle cx="8.5" cy="8.5" r="1.5"></circle>
+            </svg>
+            <img id="thumbPreviewImg" src="" alt="Thumbnail" class="w-full h-full object-contain">
+          </div>
+          <div class="truncate">
+            <div id="panelLogoName" class="text-xs font-bold text-slate-900 truncate">logo.png</div>
+            <div id="panelLogoMeta" class="text-[10px] text-slate-500">500 × 500 px • Square 1:1</div>
+          </div>
+          <button id="replaceLogoBtn" class="text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 bg-indigo-50 border border-indigo-100 px-2 py-1 rounded transition">
+            Replace
+          </button>
+        </div>
+
+        <!-- Section / Tabs Navigation (LOGO | BACKGROUND | SHAPES) -->
+        <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
+          <button id="editorTabLogoBtn" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 bg-white text-indigo-700 shadow-sm border border-slate-200">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <circle cx="8.5" cy="8.5" r="1.5"></circle>
+              <polyline points="21 15 16 10 5 21"></polyline>
+            </svg>
+            <span>LOGO</span>
+          </button>
+          <button id="editorTabBgBtn" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition flex items-center space-x-1.5">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M12 2a10 10 0 0 0 0 20v-20z"></path>
+            </svg>
+            <span>BACKGROUND</span>
+          </button>
+          <button id="editorTabShapesBtn" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition flex items-center space-x-1.5">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="12 2 2 22 22 22"></polygon>
+            </svg>
+            <span>SHAPES</span>
+          </button>
+        </div>
+
+        <!-- Navigation Between Logos & Close Modal -->
+        <div class="flex items-center space-x-2">
+          <button id="editorPrevBtn" class="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition flex items-center space-x-1 text-xs font-medium border border-slate-200">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+            <span class="hidden sm:inline">Previous</span>
+          </button>
+          <span id="editorCounter" class="text-xs font-semibold text-slate-600 px-1">1 of 12</span>
+          <button id="editorNextBtn" class="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition flex items-center space-x-1 text-xs font-medium border border-slate-200">
+            <span class="hidden sm:inline">Next</span>
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+          
+          <div class="h-5 w-px bg-slate-200 mx-1"></div>
+
+          <!-- Close Modal -->
+          <button id="editorCloseBtn" class="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Editor Body: Center Canvas Stage & Right Controls Panels -->
+      <div class="flex-1 flex flex-col md:flex-row overflow-hidden">
+        
+        <!-- Center Canvas Stage with Viewport and Guides -->
+        <div class="flex-1 flex flex-col bg-slate-100 overflow-hidden">
+          <!-- Canvas Toolbar with Guide toggles & View buttons -->
+          <div class="h-10 bg-white/95 backdrop-blur-sm border-b border-slate-200 px-4 flex items-center justify-between shrink-0 z-10 text-xs text-slate-600">
+            <div class="flex items-center space-x-3">
+              <label class="flex items-center space-x-1 cursor-pointer">
+                <input type="checkbox" id="toggleCircleGuide" checked class="rounded text-indigo-600 focus:ring-indigo-500 w-3 h-3">
+                <span class="text-[11px]">Circle Boundary</span>
+              </label>
+              <label class="flex items-center space-x-1 cursor-pointer">
+                <input type="checkbox" id="toggleCrosshair" class="rounded text-indigo-600 focus:ring-indigo-500 w-3 h-3">
+                <span class="text-[11px]">Center Crosshair</span>
+              </label>
+            </div>
+            <div class="flex items-center space-x-2">
+              <button id="themeCheckerBtn" class="px-2 py-0.5 text-[11px] font-medium bg-slate-100 hover:bg-slate-200 rounded border border-slate-200">
+                Checker Theme
+              </button>
+              <button id="canvasFitBtn" class="px-2 py-0.5 text-[11px] font-medium bg-slate-100 hover:bg-slate-200 rounded border border-slate-200">
+                Fit View
+              </button>
+            </div>
+          </div>
+
+          <!-- The Viewport containing the Interactive Canvas -->
+          <div id="canvasViewport" class="flex-1 checker-bg relative flex items-center justify-center p-4 overflow-hidden">
+            <canvas id="previewCanvas" class="shadow-2xl rounded-2xl max-w-full max-h-full canvas-grab"></canvas>
+
+            <!-- Direct Manipulation Floating Hint -->
+            <div id="dragHintBanner" class="absolute bottom-3 left-1/2 -translate-x-1/2 bg-slate-900/80 backdrop-blur-md text-white text-[11px] px-3.5 py-1.5 rounded-full shadow-lg pointer-events-none flex items-center space-x-2">
+              <span id="dragHintText">Drag logo inside circle • Mouse wheel to zoom</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Side: Individual Adjustments Panel (Switches with Tabs) -->
+        <div id="rightPanel" class="w-full md:w-88 lg:w-96 bg-white border-l border-slate-200 p-5 overflow-y-auto space-y-4 shrink-0">
+          
+          <!-- ================= TAB 1: LOGO CONTROLS ================= -->
+          <div id="editorSectionLogo" class="space-y-4">
+            <div class="border-b border-slate-100 pb-2">
+              <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Logo Transformations</h3>
+              <p class="text-[11px] text-slate-500">Scale, position, rotate, and fit the original logo artwork.</p>
+            </div>
+
+            <!-- Fit Modes (Contain / Cover) -->
+            <div>
+              <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Fit Mode</label>
+              <div class="grid grid-cols-2 gap-2 bg-slate-100 p-1 rounded-lg border border-slate-200">
+                <button id="fitContainBtn" class="py-2 px-3 rounded-md text-xs font-medium text-slate-600 hover:text-slate-900 transition">
+                  Contain
+                </button>
+                <button id="fitCoverBtn" class="py-2 px-3 rounded-md text-xs font-semibold bg-white text-indigo-700 shadow-sm border border-slate-200 transition">
+                  Cover
+                </button>
+              </div>
+              <p id="fitModeDesc" class="text-[11px] text-slate-500 mt-1 italic">Cover: Scales logo to completely cover circle frame.</p>
+            </div>
+
+            <!-- Zoom Slider -->
+            <div class="space-y-1">
+              <div class="flex items-center justify-between">
+                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Zoom & Scale</label>
+                <div class="flex items-center space-x-1">
+                  <button id="zoomOutBtn" class="w-6 h-6 flex items-center justify-center rounded text-slate-500 hover:bg-slate-100 font-bold">-</button>
+                  <span id="zoomValText" class="text-xs font-semibold text-slate-700 w-12 text-center bg-slate-100 py-0.5 rounded border border-slate-200">100%</span>
+                  <button id="zoomInBtn" class="w-6 h-6 flex items-center justify-center rounded text-slate-500 hover:bg-slate-100 font-bold">+</button>
+                </div>
+              </div>
+              <input type="range" id="zoomRange" min="10" max="400" value="100" step="1">
+              <div class="flex justify-between text-[10px] text-slate-400 pt-0.5">
+                <button id="zoomPreset50" class="hover:text-slate-700">50%</button>
+                <button id="zoomPreset100" class="hover:text-slate-700 font-semibold text-indigo-600">100%</button>
+                <button id="zoomPreset150" class="hover:text-slate-700">150%</button>
+                <button id="zoomPreset200" class="hover:text-slate-700">200%</button>
+                <button id="zoomPreset300" class="hover:text-slate-700">300%</button>
+              </div>
+            </div>
+
+            <!-- Position Offset Sliders -->
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Positioning</label>
+                <button id="centerBothBtn" class="text-[11px] font-semibold text-indigo-600 hover:text-indigo-800">
+                  Center Both
+                </button>
+              </div>
+
+              <!-- Horizontal X Slider -->
+              <div class="space-y-1">
+                <div class="flex items-center justify-between text-xs text-slate-600">
+                  <span>Horizontal (X)</span>
+                  <div class="flex items-center space-x-1.5">
+                    <span id="posXValText" class="font-mono text-slate-700 text-[11px]">0 px</span>
+                    <button id="centerHBtn" class="text-[10px] text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-1.5 py-0.5 rounded font-medium">Center H</button>
+                  </div>
+                </div>
+                <input type="range" id="posXRange" min="-250" max="250" value="0" step="1">
+              </div>
+
+              <!-- Vertical Y Slider -->
+              <div class="space-y-1">
+                <div class="flex items-center justify-between text-xs text-slate-600">
+                  <span>Vertical (Y)</span>
+                  <div class="flex items-center space-x-1.5">
+                    <span id="posYValText" class="font-mono text-slate-700 text-[11px]">0 px</span>
+                    <button id="centerVBtn" class="text-[10px] text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-1.5 py-0.5 rounded font-medium">Center V</button>
+                  </div>
+                </div>
+                <input type="range" id="posYRange" min="-250" max="250" value="0" step="1">
+              </div>
+            </div>
+
+            <!-- Rotation & Flip Controls -->
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between">
+                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Rotation</label>
+                <span id="rotationValText" class="text-xs font-semibold text-slate-700 font-mono bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">0°</span>
+              </div>
+              <input type="range" id="rotationRange" min="-180" max="180" value="0" step="1">
+              <div class="grid grid-cols-4 gap-1.5 pt-1">
+                <button id="rotateCCWBtn" class="py-1 px-2 text-[11px] font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded border border-slate-200">-90°</button>
+                <button id="rotateCWBtn" class="py-1 px-2 text-[11px] font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded border border-slate-200">+90°</button>
+                <button id="flipHBtn" class="py-1 px-2 text-[11px] font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded border border-slate-200">Flip X</button>
+                <button id="resetRotationBtn" class="py-1 px-2 text-[11px] font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded border border-slate-200">0°</button>
+              </div>
+            </div>
+
+            <!-- Reset Adjustments -->
+            <button id="resetAdjustmentsBtn" class="w-full py-2 px-3 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition">
+              Reset Adjustments
+            </button>
+          </div>
+
+          <!-- ================= TAB 2: BACKGROUND COMPOSER ================= -->
+          <div id="editorSectionBg" class="space-y-4 hidden">
+            <div class="border-b border-slate-100 pb-2 flex items-center justify-between">
+              <div>
+                <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Background Composer</h3>
+                <p class="text-[11px] text-slate-500">Circular interior fill only (corners stay transparent).</p>
+              </div>
+              <button id="resetBgBtn" class="text-[11px] font-semibold text-indigo-600 hover:text-indigo-800">Reset</button>
+            </div>
+
+            <!-- Background Preset Palette (12 Options) -->
+            <div>
+              <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Preset Backgrounds</label>
+              <div class="grid grid-cols-4 gap-2">
+                <!-- 1. Transparent -->
+                <button id="bgPresetTransparent" class="p-2 rounded-lg border-2 border-indigo-600 bg-indigo-50/50 text-[11px] font-semibold text-indigo-900 flex flex-col items-center justify-center transition" title="Transparent background">
+                  <span class="w-5 h-5 rounded-full border border-slate-300 checker-subtle mb-1"></span>
+                  <span class="truncate">Clear</span>
+                </button>
+                <!-- 2. Solid White (Prominent) -->
+                <button id="bgPresetWhite" class="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-medium text-slate-700 flex flex-col items-center justify-center transition" title="Solid White">
+                  <span class="w-5 h-5 rounded-full border border-slate-300 bg-white mb-1"></span>
+                  <span class="truncate">White</span>
+                </button>
+                <!-- 3. Solid Black -->
+                <button id="bgPresetBlack" class="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-medium text-slate-700 flex flex-col items-center justify-center transition" title="Solid Black">
+                  <span class="w-5 h-5 rounded-full border border-slate-400 bg-slate-900 mb-1"></span>
+                  <span class="truncate">Black</span>
+                </button>
+                <!-- 4. Light Grey -->
+                <button id="bgPresetLightGrey" class="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-medium text-slate-700 flex flex-col items-center justify-center transition" title="Light Grey (#F1F5F9)">
+                  <span class="w-5 h-5 rounded-full border border-slate-300 bg-slate-100 mb-1"></span>
+                  <span class="truncate">Lt Grey</span>
+                </button>
+                <!-- 5. Dark Grey -->
+                <button id="bgPresetDarkGrey" class="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-medium text-slate-700 flex flex-col items-center justify-center transition" title="Dark Grey (#334155)">
+                  <span class="w-5 h-5 rounded-full border border-slate-300 bg-slate-700 mb-1"></span>
+                  <span class="truncate">Dk Grey</span>
+                </button>
+                <!-- 6. Light Blue -->
+                <button id="bgPresetLightBlue" class="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-medium text-slate-700 flex flex-col items-center justify-center transition" title="Light Blue (#E0F2FE)">
+                  <span class="w-5 h-5 rounded-full border border-slate-300 bg-sky-100 mb-1"></span>
+                  <span class="truncate">Lt Blue</span>
+                </button>
+                <!-- 7. Navy Blue -->
+                <button id="bgPresetNavyBlue" class="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-medium text-slate-700 flex flex-col items-center justify-center transition" title="Navy Blue (#1E3A8A)">
+                  <span class="w-5 h-5 rounded-full border border-slate-300 bg-blue-900 mb-1"></span>
+                  <span class="truncate">Navy</span>
+                </button>
+                <!-- 8. Beige -->
+                <button id="bgPresetBeige" class="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-medium text-slate-700 flex flex-col items-center justify-center transition" title="Beige (#FEF3C7)">
+                  <span class="w-5 h-5 rounded-full border border-slate-300 bg-amber-100 mb-1"></span>
+                  <span class="truncate">Beige</span>
+                </button>
+                <!-- 9. Soft Pink -->
+                <button id="bgPresetSoftPink" class="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-medium text-slate-700 flex flex-col items-center justify-center transition" title="Soft Pink (#FCE7F3)">
+                  <span class="w-5 h-5 rounded-full border border-slate-300 bg-pink-100 mb-1"></span>
+                  <span class="truncate">Pink</span>
+                </button>
+                <!-- 10. Light Green -->
+                <button id="bgPresetLightGreen" class="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-medium text-slate-700 flex flex-col items-center justify-center transition" title="Light Green (#DCFCE7)">
+                  <span class="w-5 h-5 rounded-full border border-slate-300 bg-emerald-100 mb-1"></span>
+                  <span class="truncate">Green</span>
+                </button>
+                <!-- 11. Custom Color -->
+                <button id="bgPresetCustom" class="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-medium text-slate-700 flex flex-col items-center justify-center transition" title="Custom Solid Color">
+                  <span id="bgCustomSampleDot" class="w-5 h-5 rounded-full border border-slate-300 bg-indigo-500 mb-1"></span>
+                  <span class="truncate">Custom</span>
+                </button>
+                <!-- 12. Gradient -->
+                <button id="bgPresetGradient" class="p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-medium text-slate-700 flex flex-col items-center justify-center transition" title="Gradient Background">
+                  <span class="w-5 h-5 rounded-full border border-slate-300 bg-gradient-to-tr from-indigo-500 to-cyan-400 mb-1"></span>
+                  <span class="truncate">Gradient</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Custom Solid Color Controls -->
+            <div id="bgCustomColorControls" class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+              <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider">Custom Color & HEX</label>
+              <div class="flex items-center space-x-2">
+                <input type="color" id="bgCustomColorPicker" value="#4F46E5" class="w-8 h-8 rounded border border-slate-300 cursor-pointer p-0.5">
+                <input type="text" id="bgCustomHexInput" value="#4F46E5" class="flex-1 px-2.5 py-1.5 text-xs font-mono uppercase bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                <button id="bgApplyHexBtn" class="px-2.5 py-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100">Apply</button>
+              </div>
+            </div>
+
+            <!-- Gradient Controls -->
+            <div id="bgGradientControls" class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2.5 hidden">
+              <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider">Gradient Settings</label>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <span class="text-[10px] text-slate-500 block mb-1">Color 1 (Start)</span>
+                  <div class="flex items-center space-x-1.5">
+                    <input type="color" id="bgGradColor1Picker" value="#4F46E5" class="w-7 h-7 rounded border border-slate-300 cursor-pointer">
+                    <input type="text" id="bgGradColor1Hex" value="#4F46E5" class="w-20 px-1.5 py-1 text-[11px] font-mono uppercase bg-white border border-slate-300 rounded">
+                  </div>
+                </div>
+                <div>
+                  <span class="text-[10px] text-slate-500 block mb-1">Color 2 (End)</span>
+                  <div class="flex items-center space-x-1.5">
+                    <input type="color" id="bgGradColor2Picker" value="#06B6D4" class="w-7 h-7 rounded border border-slate-300 cursor-pointer">
+                    <input type="text" id="bgGradColor2Hex" value="#06B6D4" class="w-20 px-1.5 py-1 text-[11px] font-mono uppercase bg-white border border-slate-300 rounded">
+                  </div>
+                </div>
+              </div>
+              <div>
+                <span class="text-[10px] text-slate-500 block mb-1">Direction / Type</span>
+                <select id="bgGradDirectionSelect" class="w-full text-xs bg-white border border-slate-300 rounded-lg p-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                  <option value="to-bottom">Top to Bottom (Vertical)</option>
+                  <option value="to-right">Left to Right (Horizontal)</option>
+                  <option value="diagonal" selected>Diagonal (Top-Left to Bottom-Right)</option>
+                  <option value="radial">Radial Center Glow</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Background Opacity Slider -->
+            <div class="space-y-1">
+              <div class="flex items-center justify-between">
+                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Background Opacity</label>
+                <span id="bgOpacityValText" class="text-xs font-semibold text-slate-700 font-mono bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">100%</span>
+              </div>
+              <input type="range" id="bgOpacityRange" min="0" max="100" value="100" step="1">
+            </div>
+          </div>
+
+          <!-- ================= TAB 3: SHAPES COMPOSER ================= -->
+          <div id="editorSectionShapes" class="space-y-4 hidden">
+            <div class="border-b border-slate-100 pb-2">
+              <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Decorative Shape Composer</h3>
+              <p class="text-[11px] text-slate-500">Add editable accents behind the logo, inside the circular crop.</p>
+            </div>
+
+            <!-- Add Shape Toolbar -->
+            <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+              <div class="flex items-center justify-between">
+                <label class="text-[11px] font-bold text-slate-600 uppercase tracking-wider">Shape Library</label>
+                <span class="text-[10px] text-slate-400">8 Shapes</span>
+              </div>
+              <div class="flex items-center space-x-2">
+                <select id="shapeTypeSelect" class="flex-1 text-xs bg-white border border-slate-300 rounded-lg p-2 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-medium">
+                  <option value="circle">Circle</option>
+                  <option value="ellipse">Ellipse</option>
+                  <option value="square">Square</option>
+                  <option value="rectangle">Rectangle</option>
+                  <option value="rounded-rect">Rounded Rectangle</option>
+                  <option value="pill">Pill Shape</option>
+                  <option value="blob">Abstract Blob</option>
+                  <option value="accent">Ring / Geometric Accent</option>
+                </select>
+                <button id="addShapeBtn" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg shadow-sm transition flex items-center space-x-1 shrink-0">
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                  <span>Add Shape</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Shape Layers List -->
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Shape Layers (Behind Logo)</label>
+                <span id="shapeLayerCountText" class="text-[10px] text-slate-400">0 shapes</span>
+              </div>
+              <div id="shapeLayersList" class="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                <!-- Dynamically populated shape list items -->
+                <div id="emptyShapesNotice" class="text-xs text-slate-400 text-center py-3 border border-dashed border-slate-200 rounded-lg">
+                  No decorative shapes added yet.<br>Click "Add Shape" above.
+                </div>
+              </div>
+            </div>
+
+            <!-- Selected Shape Controls Panel -->
+            <div id="shapeControlsBox" class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-3 hidden">
+              <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+                <span id="selectedShapeTitle" class="text-xs font-bold text-slate-800">Edit Shape #1</span>
+                <!-- Shape Actions: Up, Down, Duplicate, Delete -->
+                <div class="flex items-center space-x-1">
+                  <button id="shapeMoveUpBtn" title="Move Forward in Layer Order" class="p-1 text-slate-600 hover:text-indigo-600 rounded hover:bg-slate-200">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"></polyline></svg>
+                  </button>
+                  <button id="shapeMoveDownBtn" title="Move Backward in Layer Order" class="p-1 text-slate-600 hover:text-indigo-600 rounded hover:bg-slate-200">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                  </button>
+                  <button id="shapeToggleVisibleBtn" title="Hide/Show Shape" class="p-1 text-slate-600 hover:text-indigo-600 rounded hover:bg-slate-200">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                  </button>
+                  <button id="shapeToggleLockBtn" title="Lock/Unlock Shape" class="p-1 text-slate-600 hover:text-indigo-600 rounded hover:bg-slate-200">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                  </button>
+                  <button id="shapeDuplicateBtn" title="Duplicate Shape" class="p-1 text-slate-600 hover:text-indigo-600 rounded hover:bg-slate-200">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                  </button>
+                  <button id="shapeDeleteBtn" title="Delete Shape" class="p-1 text-rose-500 hover:text-rose-700 rounded hover:bg-rose-50">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Shape Color Picker & HEX -->
+              <div class="flex items-center justify-between text-xs">
+                <span class="text-slate-600">Shape Color</span>
+                <div class="flex items-center space-x-1.5">
+                  <input type="color" id="shapeColorPicker" value="#38BDF8" class="w-6 h-6 rounded border border-slate-300 cursor-pointer">
+                  <input type="text" id="shapeHexInput" value="#38BDF8" class="w-20 px-1.5 py-0.5 text-[11px] font-mono uppercase bg-white border border-slate-300 rounded">
+                </div>
+              </div>
+
+              <!-- Shape Width Slider -->
+              <div class="space-y-0.5">
+                <div class="flex justify-between text-[11px] text-slate-600">
+                  <span>Width</span>
+                  <span id="shapeWidthValText" class="font-mono">180 px</span>
+                </div>
+                <input type="range" id="shapeWidthRange" min="10" max="400" value="180" step="1">
+              </div>
+
+              <!-- Shape Height Slider -->
+              <div class="space-y-0.5">
+                <div class="flex justify-between text-[11px] text-slate-600">
+                  <span>Height</span>
+                  <span id="shapeHeightValText" class="font-mono">180 px</span>
+                </div>
+                <input type="range" id="shapeHeightRange" min="10" max="400" value="180" step="1">
+              </div>
+
+              <!-- Shape Horizontal X -->
+              <div class="space-y-0.5">
+                <div class="flex justify-between text-[11px] text-slate-600">
+                  <span>Horizontal (X)</span>
+                  <span id="shapePosXValText" class="font-mono">0 px</span>
+                </div>
+                <input type="range" id="shapePosXRange" min="-250" max="250" value="0" step="1">
+              </div>
+
+              <!-- Shape Vertical Y -->
+              <div class="space-y-0.5">
+                <div class="flex justify-between text-[11px] text-slate-600">
+                  <span>Vertical (Y)</span>
+                  <span id="shapePosYValText" class="font-mono">0 px</span>
+                </div>
+                <input type="range" id="shapePosYRange" min="-250" max="250" value="0" step="1">
+              </div>
+
+              <!-- Shape Rotation -->
+              <div class="space-y-0.5">
+                <div class="flex justify-between text-[11px] text-slate-600">
+                  <span>Rotation</span>
+                  <span id="shapeRotationValText" class="font-mono">0°</span>
+                </div>
+                <input type="range" id="shapeRotationRange" min="-180" max="180" value="0" step="1">
+              </div>
+
+              <!-- Shape Opacity -->
+              <div class="space-y-0.5">
+                <div class="flex justify-between text-[11px] text-slate-600">
+                  <span>Opacity</span>
+                  <span id="shapeOpacityValText" class="font-mono">100%</span>
+                </div>
+                <input type="range" id="shapeOpacityRange" min="0" max="100" value="100" step="1">
+              </div>
+            </div>
+          </div>
+
+          <!-- Mini Output Preview -->
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 flex flex-col items-center justify-center">
+            <div class="w-20 h-20 rounded-full border-2 border-indigo-500/30 checker-subtle relative flex items-center justify-center overflow-hidden">
+              <canvas id="miniOutputCanvas" width="80" height="80" class="w-full h-full rounded-full"></canvas>
+            </div>
+            <div class="flex items-center justify-between w-full mt-2 text-[10px] text-slate-500">
+              <span id="previewResolutionLabel">512 × 512 px</span>
+              <span id="specAlpha" class="text-emerald-600 font-medium">Alpha 0</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Editor Footer Actions -->
+      <div class="h-16 bg-slate-50 border-t border-slate-200 px-5 flex items-center justify-between shrink-0">
+        <div class="flex items-center space-x-2">
+          <!-- Copy Individual PNG -->
+          <button id="copyActionBtn" class="px-3.5 py-2 rounded-lg text-xs font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 transition flex items-center space-x-1.5 shadow-2xs">
+            <svg class="w-3.5 h-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            <span>Copy PNG to Clipboard</span>
+          </button>
+          <!-- Export Individual PNG -->
+          <button id="exportActionBtn" class="px-3.5 py-2 rounded-lg text-xs font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 transition flex items-center space-x-1.5 shadow-2xs">
+            <svg class="w-3.5 h-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            <span id="exportBtnLabel">Export PNG (512 × 512)</span>
+          </button>
+        </div>
+
+        <div class="flex items-center space-x-2.5">
+          <button id="editorCancelBtn" class="px-4 py-2 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 transition">
+            Close
+          </button>
+          <button id="editorSaveBtn" class="px-5 py-2 rounded-lg text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition shadow-sm">
+            Save & Done
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= BULK EXPORT PROGRESS MODAL ================= -->
+  <div id="exportProgressModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 border border-slate-200 text-center space-y-4">
+      <div class="w-12 h-12 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto ring-4 ring-indigo-50/50">
+        <svg class="w-6 h-6 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle>
+          <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"></path>
+        </svg>
+      </div>
+
+      <div>
+        <h4 id="exportModalTitle" class="text-base font-bold text-slate-900">Packaging Circular Logos</h4>
+        <p id="exportModalDesc" class="text-xs text-slate-500 mt-1">Generating high-resolution transparent PNG files...</p>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden border border-slate-200">
+        <div id="exportProgressBar" class="bg-indigo-600 h-full w-0 transition-all duration-150 rounded-full"></div>
+      </div>
+
+      <div class="flex justify-between text-xs text-slate-500 font-mono">
+        <span id="exportProgressCurrent">0 / 0</span>
+        <span id="exportProgressPct">0%</span>
+      </div>
+
+      <div class="text-[11px] text-slate-400 italic">
+        Packaging into a single ZIP archive for instant download.
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+  <!-- ================= LOGIC & RENDERING JAVASCRIPT ================= -->
+  <script>
+    (function () {
+      'use strict';
+
+      // Register PWA Service Worker if available
+      if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('./sw.js').catch(function () {});
+        });
+      }
+
+      // --- 12 DIVERSE EMBEDDED VECTOR SAMPLE LOGOS ---
+      var SAMPLES = [
+        {
+          name: 'techflow_horizontal.svg',
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 200" width="700" height="200">' +
+               '<defs><linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4F46E5"/><stop offset="100%" stop-color="#06B6D4"/></linearGradient></defs>' +
+               '<rect width="700" height="200" fill="#0F172A"/>' +
+               '<g transform="translate(40, 25)"><polygon points="75,10 135,45 135,105 75,140 15,105 15,45" fill="url(#g1)"/><polygon points="75,35 110,55 110,95 75,115 40,95 40,55" fill="#ffffff" opacity="0.95"/><circle cx="75" cy="75" r="16" fill="#4F46E5"/></g>' +
+               '<text x="210" y="115" font-family="system-ui, sans-serif" font-size="68" font-weight="800" fill="#FFFFFF">Tech<tspan fill="#4F46E5">Flow</tspan></text>' +
+               '<text x="215" y="152" font-family="system-ui, sans-serif" font-size="20" font-weight="600" fill="#94A3B8" letter-spacing="4">SOLUTIONS</text>' +
+               '</svg>'
+        },
+        {
+          name: 'apex_square_studio.svg',
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="500" height="500">' +
+               '<defs><linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#EC4899"/><stop offset="100%" stop-color="#8B5CF6"/></linearGradient></defs>' +
+               '<rect width="500" height="500" fill="url(#g2)"/>' +
+               '<path d="M250 90 L390 340 L320 340 L250 210 L180 340 L110 340 Z" fill="#ffffff"/>' +
+               '<text x="250" y="420" font-family="system-ui, sans-serif" font-size="38" font-weight="800" fill="#ffffff" text-anchor="middle" letter-spacing="3">APEX STUDIO</text>' +
+               '</svg>'
+        },
+        {
+          name: 'nordic_peaks_vertical.svg',
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 560" width="260" height="560">' +
+               '<defs><linearGradient id="g3" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0EA5E9"/><stop offset="100%" stop-color="#10B981"/></linearGradient></defs>' +
+               '<rect width="260" height="560" fill="#042F2E"/>' +
+               '<polygon points="130,50 230,220 30,220" fill="url(#g3)"/>' +
+               '<polygon points="130,130 190,230 70,230" fill="#047857" opacity="0.6"/>' +
+               '<circle cx="130" cy="280" r="16" fill="#0EA5E9"/>' +
+               '<text x="130" y="350" font-family="system-ui, sans-serif" font-size="34" font-weight="800" fill="#FFFFFF" text-anchor="middle">NORDIC</text>' +
+               '<text x="130" y="390" font-family="system-ui, sans-serif" font-size="28" font-weight="400" fill="#10B981" text-anchor="middle" letter-spacing="6">PEAKS</text>' +
+               '<text x="130" y="455" font-family="system-ui, sans-serif" font-size="14" font-weight="600" fill="#94A3B8" text-anchor="middle">ROASTERS</text>' +
+               '</svg>'
+        },
+        {
+          name: 'quantum_shield_vector.svg',
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">' +
+               '<defs><linearGradient id="g4" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#F59E0B"/><stop offset="100%" stop-color="#EF4444"/></linearGradient></defs>' +
+               '<rect width="400" height="400" fill="#18181B"/>' +
+               '<circle cx="200" cy="200" r="150" fill="none" stroke="url(#g4)" stroke-width="24"/>' +
+               '<circle cx="200" cy="200" r="100" fill="none" stroke="#FFFFFF" stroke-width="12" stroke-dasharray="20 12"/>' +
+               '<polygon points="200,120 265,245 135,245" fill="url(#g4)"/>' +
+               '</svg>'
+        },
+        {
+          name: 'aurora_media_horizontal.svg',
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 650 200" width="650" height="200">' +
+               '<defs><linearGradient id="g5" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#6366F1"/><stop offset="100%" stop-color="#A855F7"/></linearGradient></defs>' +
+               '<rect width="650" height="200" fill="#1E1B4B"/>' +
+               '<circle cx="95" cy="100" r="55" fill="url(#g5)"/>' +
+               '<path d="M70 70 Q95 100 120 70 Q95 130 70 70 Z" fill="#FFFFFF"/>' +
+               '<text x="180" y="112" font-family="system-ui, sans-serif" font-size="56" font-weight="800" fill="#FFFFFF">AURORA</text>' +
+               '<text x="185" y="145" font-family="system-ui, sans-serif" font-size="18" font-weight="600" fill="#C084FC" letter-spacing="5">MEDIA</text>' +
+               '</svg>'
+        },
+        {
+          name: 'zenith_athletics_crest.svg',
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 480" width="400" height="480">' +
+               '<rect width="400" height="480" fill="#09090B"/>' +
+               '<path d="M200 40 L340 100 L340 280 C340 370 200 440 200 440 C200 440 60 370 60 280 L60 100 Z" fill="#18181B"/>' +
+               '<path d="M200 70 L310 120 L310 270 C310 340 200 400 200 400 C200 400 90 340 90 270 L90 120 Z" fill="#F59E0B"/>' +
+               '<text x="200" y="230" font-family="system-ui, sans-serif" font-size="80" font-weight="900" fill="#FFFFFF" text-anchor="middle">Z</text>' +
+               '<text x="200" y="320" font-family="system-ui, sans-serif" font-size="22" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="3">ATHLETIC</text>' +
+               '</svg>'
+        },
+        {
+          name: 'solaris_energy_wide.svg',
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 180" width="720" height="180">' +
+               '<rect width="720" height="180" fill="#451A03"/>' +
+               '<circle cx="80" cy="90" r="45" fill="#EAB308"/>' +
+               '<circle cx="80" cy="90" r="32" fill="#F97316"/>' +
+               '<circle cx="80" cy="90" r="18" fill="#FFFFFF"/>' +
+               '<text x="155" y="105" font-family="system-ui, sans-serif" font-size="52" font-weight="800" fill="#FEF08A">SOLARIS</text>' +
+               '<text x="160" y="138" font-family="system-ui, sans-serif" font-size="18" font-weight="600" fill="#FDBA74" letter-spacing="4">RENEWABLE</text>' +
+               '</svg>'
+        },
+        {
+          name: 'hyperion_crypto_token.svg',
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 450 450" width="450" height="450">' +
+               '<rect width="450" height="450" fill="#082F49"/>' +
+               '<circle cx="225" cy="225" r="180" fill="#0284C7"/>' +
+               '<polygon points="225,80 330,225 225,370 120,225" fill="#38BDF8"/>' +
+               '<polygon points="225,120 300,225 225,330 150,225" fill="#FFFFFF"/>' +
+               '<circle cx="225" cy="225" r="28" fill="#0369A1"/>' +
+               '</svg>'
+        },
+        {
+          name: 'vortex_gaming_diamond.svg',
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 420" width="420" height="420">' +
+               '<rect width="420" height="420" fill="#2E1065"/>' +
+               '<rect x="210" y="40" width="240" height="240" transform="rotate(45 210 40)" fill="#7C3AED" rx="20"/>' +
+               '<circle cx="210" cy="210" r="70" fill="#10B981"/>' +
+               '<path d="M180 210 L240 180 L240 240 Z" fill="#FFFFFF"/>' +
+               '</svg>'
+        },
+        {
+          name: 'lumina_cosmetics_tall.svg',
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 520" width="250" height="520">' +
+               '<rect width="250" height="520" fill="#4C0519"/>' +
+               '<circle cx="125" cy="140" r="70" fill="#F43F5E"/>' +
+               '<path d="M125 90 C150 140 125 190 125 190 C125 190 100 140 125 90 Z" fill="#FFFFFF"/>' +
+               '<text x="125" y="300" font-family="system-ui, sans-serif" font-size="34" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="4">LUMINA</text>' +
+               '<text x="125" y="340" font-family="system-ui, sans-serif" font-size="16" font-weight="400" fill="#FDA4AF" text-anchor="middle" letter-spacing="6">ORGANICS</text>' +
+               '</svg>'
+        },
+        {
+          name: 'terra_eco_leaf.svg',
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 450 450" width="450" height="450">' +
+               '<rect width="450" height="450" fill="#052E16"/>' +
+               '<path d="M225 60 C330 60 370 170 370 250 C370 340 290 390 225 390 C160 390 80 340 80 250 C80 170 120 60 225 60 Z" fill="#16A34A"/>' +
+               '<path d="M225 100 L225 350 M225 160 Q290 140 310 180 M225 220 Q160 200 140 250" stroke="#FFFFFF" stroke-width="14" fill="none" stroke-linecap="round"/>' +
+               '</svg>'
+        },
+        {
+          name: 'pulse_audio_wide.svg',
+          svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 200" width="680" height="200">' +
+               '<rect width="680" height="200" fill="#172554"/>' +
+               '<g fill="#3B82F6">' +
+               '<rect x="40" y="70" width="14" height="60" rx="7"/>' +
+               '<rect x="64" y="40" width="14" height="120" rx="7"/>' +
+               '<rect x="88" y="20" width="14" height="160" rx="7"/>' +
+               '<rect x="112" y="50" width="14" height="100" rx="7"/>' +
+               '<rect x="136" y="80" width="14" height="40" rx="7"/>' +
+               '</g>' +
+               '<text x="190" y="115" font-family="system-ui, sans-serif" font-size="60" font-weight="800" fill="#FFFFFF">PULSE<tspan fill="#60A5FA">AUDIO</tspan></text>' +
+               '<text x="195" y="150" font-family="system-ui, sans-serif" font-size="18" font-weight="600" fill="#93C5FD" letter-spacing="4">ACOUSTICS</text>' +
+               '</svg>'
+        }
+      ];
+
+      // --- APPLICATION GLOBAL STATE ---
+      var state = {
+        logos: [],
+        selectedIds: new Set(),
+        editingLogoId: null,
+        activeTab: 'logo', // 'logo', 'background', 'shapes'
+        selectedShapeId: null,
+        
+        // Global / Batch defaults
+        globalExportSize: 512,
+        globalFitMode: 'cover',
+        globalBgColor: 'transparent',
+        checkerTheme: 'light',
+        showCircleGuide: true,
+        showCrosshair: false
+      };
+
+      var idCounter = 1;
+      function getNextId() {
+        return 'logo_' + (idCounter++);
+      }
+
+      var shapeIdCounter = 1;
+      function getNextShapeId() {
+        return 'shape_' + (shapeIdCounter++);
+      }
+
+      // --- DOM REFERENCES ---
+      var fileInput = document.getElementById('logoFileInput');
+      var navUploadBtn = document.getElementById('navUploadBtn');
+      var navResetBtn = document.getElementById('navResetBtn');
+      var navCopyBtn = document.getElementById('navCopyBtn');
+      var navExportBtn = document.getElementById('navExportBtn');
+      var navExportLabel = document.getElementById('navExportLabel');
+      var emptyUploadBtn = document.getElementById('emptyUploadBtn');
+      var emptyLoad12Btn = document.getElementById('emptyLoad12Btn');
+      var load12SamplesBtn = document.getElementById('load12SamplesBtn');
+      var addMoreLogosBtn = document.getElementById('addMoreLogosBtn');
+
+      var selectAllBtn = document.getElementById('selectAllBtn');
+      var deselectAllBtn = document.getElementById('deselectAllBtn');
+      var invertSelectionBtn = document.getElementById('invertSelectionBtn');
+      var removeSelectedBtn = document.getElementById('removeSelectedBtn');
+      var exportSelectedBtn = document.getElementById('exportSelectedBtn');
+      var exportAllMainBtn = document.getElementById('exportAllMainBtn');
+
+      var selectionSummaryLabel = document.getElementById('selectionSummaryLabel');
+      var statusDot = document.getElementById('statusDot');
+      var statusFilename = document.getElementById('statusFilename');
+      var statusDimensions = document.getElementById('statusDimensions');
+      var footerTotalLabel = document.getElementById('footerTotalLabel');
+      var footerSelectedLabel = document.getElementById('footerSelectedLabel');
+      var footerExportResLabel = document.getElementById('footerExportResLabel');
+      var specDimensions = document.getElementById('specDimensions');
+      var specAlpha = document.getElementById('specAlpha');
+
+      var gridContainer = document.getElementById('gridContainer');
+      var emptyStateOverlay = document.getElementById('emptyStateOverlay');
+      var logoGrid = document.getElementById('logoGrid');
+
+      // Sample buttons
+      var sampleHorizontalBtn = document.getElementById('sampleHorizontalBtn');
+      var sampleSquareBtn = document.getElementById('sampleSquareBtn');
+      var sampleVerticalBtn = document.getElementById('sampleVerticalBtn');
+      var sampleVectorBtn = document.getElementById('sampleVectorBtn');
+      var emptySampleHBtn = document.getElementById('emptySampleHBtn');
+      var emptySampleSqBtn = document.getElementById('emptySampleSqBtn');
+      var emptySampleVBtn = document.getElementById('emptySampleVBtn');
+
+      // Left Sidebar Batch Controls
+      var batchFitContainBtn = document.getElementById('batchFitContainBtn');
+      var batchFitCoverBtn = document.getElementById('batchFitCoverBtn');
+      var applySettingsSelectedBtn = document.getElementById('applySettingsSelectedBtn');
+      var applySettingsAllBtn = document.getElementById('applySettingsAllBtn');
+      var resolutionGroup = document.getElementById('resolutionGroup');
+      var bgTransparentBtn = document.getElementById('bgTransparentBtn');
+      var bgWhiteBtn = document.getElementById('bgWhiteBtn');
+      var bgBlackBtn = document.getElementById('bgBlackBtn');
+
+      // Modal Editor Controls
+      var editorModal = document.getElementById('editorModal');
+      var previewCanvas = document.getElementById('previewCanvas');
+      var previewCtx = previewCanvas.getContext('2d');
+      var miniOutputCanvas = document.getElementById('miniOutputCanvas');
+      var miniCtx = miniOutputCanvas.getContext('2d');
+      var canvasViewport = document.getElementById('canvasViewport');
+
+      var panelLogoName = document.getElementById('panelLogoName');
+      var panelLogoMeta = document.getElementById('panelLogoMeta');
+      var thumbPreviewImg = document.getElementById('thumbPreviewImg');
+      var emptyThumbIcon = document.getElementById('emptyThumbIcon');
+      var replaceLogoBtn = document.getElementById('replaceLogoBtn');
+      var editorCounter = document.getElementById('editorCounter');
+      var editorPrevBtn = document.getElementById('editorPrevBtn');
+      var editorNextBtn = document.getElementById('editorNextBtn');
+      var editorCloseBtn = document.getElementById('editorCloseBtn');
+      var editorCancelBtn = document.getElementById('editorCancelBtn');
+      var editorSaveBtn = document.getElementById('editorSaveBtn');
+
+      // Tabs buttons and section panels
+      var editorTabLogoBtn = document.getElementById('editorTabLogoBtn');
+      var editorTabBgBtn = document.getElementById('editorTabBgBtn');
+      var editorTabShapesBtn = document.getElementById('editorTabShapesBtn');
+      var editorSectionLogo = document.getElementById('editorSectionLogo');
+      var editorSectionBg = document.getElementById('editorSectionBg');
+      var editorSectionShapes = document.getElementById('editorSectionShapes');
+      var dragHintText = document.getElementById('dragHintText');
+
+      // Tab 1 (Logo) controls
+      var fitContainBtn = document.getElementById('fitContainBtn');
+      var fitCoverBtn = document.getElementById('fitCoverBtn');
+      var fitModeDesc = document.getElementById('fitModeDesc');
+      var zoomRange = document.getElementById('zoomRange');
+      var zoomValText = document.getElementById('zoomValText');
+      var zoomInBtn = document.getElementById('zoomInBtn');
+      var zoomOutBtn = document.getElementById('zoomOutBtn');
+      var zoomPreset50 = document.getElementById('zoomPreset50');
+      var zoomPreset100 = document.getElementById('zoomPreset100');
+      var zoomPreset150 = document.getElementById('zoomPreset150');
+      var zoomPreset200 = document.getElementById('zoomPreset200');
+      var zoomPreset300 = document.getElementById('zoomPreset300');
+
+      var posXRange = document.getElementById('posXRange');
+      var posYRange = document.getElementById('posYRange');
+      var posXValText = document.getElementById('posXValText');
+      var posYValText = document.getElementById('posYValText');
+      var centerHBtn = document.getElementById('centerHBtn');
+      var centerVBtn = document.getElementById('centerVBtn');
+      var centerBothBtn = document.getElementById('centerBothBtn');
+
+      var rotationRange = document.getElementById('rotationRange');
+      var rotationValText = document.getElementById('rotationValText');
+      var rotateCCWBtn = document.getElementById('rotateCCWBtn');
+      var rotateCWBtn = document.getElementById('rotateCWBtn');
+      var flipHBtn = document.getElementById('flipHBtn');
+      var resetRotationBtn = document.getElementById('resetRotationBtn');
+      var resetAdjustmentsBtn = document.getElementById('resetAdjustmentsBtn');
+
+      // Tab 2 (Background) controls
+      var bgPresetTransparent = document.getElementById('bgPresetTransparent');
+      var bgPresetWhite = document.getElementById('bgPresetWhite');
+      var bgPresetBlack = document.getElementById('bgPresetBlack');
+      var bgPresetLightGrey = document.getElementById('bgPresetLightGrey');
+      var bgPresetDarkGrey = document.getElementById('bgPresetDarkGrey');
+      var bgPresetLightBlue = document.getElementById('bgPresetLightBlue');
+      var bgPresetNavyBlue = document.getElementById('bgPresetNavyBlue');
+      var bgPresetBeige = document.getElementById('bgPresetBeige');
+      var bgPresetSoftPink = document.getElementById('bgPresetSoftPink');
+      var bgPresetLightGreen = document.getElementById('bgPresetLightGreen');
+      var bgPresetCustom = document.getElementById('bgPresetCustom');
+      var bgPresetGradient = document.getElementById('bgPresetGradient');
+      var resetBgBtn = document.getElementById('resetBgBtn');
+
+      var bgCustomColorControls = document.getElementById('bgCustomColorControls');
+      var bgCustomColorPicker = document.getElementById('bgCustomColorPicker');
+      var bgCustomHexInput = document.getElementById('bgCustomHexInput');
+      var bgApplyHexBtn = document.getElementById('bgApplyHexBtn');
+      var bgCustomSampleDot = document.getElementById('bgCustomSampleDot');
+
+      var bgGradientControls = document.getElementById('bgGradientControls');
+      var bgGradColor1Picker = document.getElementById('bgGradColor1Picker');
+      var bgGradColor1Hex = document.getElementById('bgGradColor1Hex');
+      var bgGradColor2Picker = document.getElementById('bgGradColor2Picker');
+      var bgGradColor2Hex = document.getElementById('bgGradColor2Hex');
+      var bgGradDirectionSelect = document.getElementById('bgGradDirectionSelect');
+      var bgOpacityRange = document.getElementById('bgOpacityRange');
+      var bgOpacityValText = document.getElementById('bgOpacityValText');
+
+      // Tab 3 (Shapes) controls
+      var shapeTypeSelect = document.getElementById('shapeTypeSelect');
+      var addShapeBtn = document.getElementById('addShapeBtn');
+      var shapeLayerCountText = document.getElementById('shapeLayerCountText');
+      var shapeLayersList = document.getElementById('shapeLayersList');
+      var emptyShapesNotice = document.getElementById('emptyShapesNotice');
+
+      var shapeControlsBox = document.getElementById('shapeControlsBox');
+      var selectedShapeTitle = document.getElementById('selectedShapeTitle');
+      var shapeMoveUpBtn = document.getElementById('shapeMoveUpBtn');
+      var shapeMoveDownBtn = document.getElementById('shapeMoveDownBtn');
+      var shapeToggleVisibleBtn = document.getElementById('shapeToggleVisibleBtn');
+      var shapeToggleLockBtn = document.getElementById('shapeToggleLockBtn');
+      var shapeDuplicateBtn = document.getElementById('shapeDuplicateBtn');
+      var shapeDeleteBtn = document.getElementById('shapeDeleteBtn');
+
+      var shapeColorPicker = document.getElementById('shapeColorPicker');
+      var shapeHexInput = document.getElementById('shapeHexInput');
+      var shapeWidthRange = document.getElementById('shapeWidthRange');
+      var shapeWidthValText = document.getElementById('shapeWidthValText');
+      var shapeHeightRange = document.getElementById('shapeHeightRange');
+      var shapeHeightValText = document.getElementById('shapeHeightValText');
+      var shapePosXRange = document.getElementById('shapePosXRange');
+      var shapePosXValText = document.getElementById('shapePosXValText');
+      var shapePosYRange = document.getElementById('shapePosYRange');
+      var shapePosYValText = document.getElementById('shapePosYValText');
+      var shapeRotationRange = document.getElementById('shapeRotationRange');
+      var shapeRotationValText = document.getElementById('shapeRotationValText');
+      var shapeOpacityRange = document.getElementById('shapeOpacityRange');
+      var shapeOpacityValText = document.getElementById('shapeOpacityValText');
+
+      // Canvas Guide & Mode Controls
+      var toggleCircleGuide = document.getElementById('toggleCircleGuide');
+      var toggleCrosshair = document.getElementById('toggleCrosshair');
+      var themeCheckerBtn = document.getElementById('themeCheckerBtn');
+      var canvasFitBtn = document.getElementById('canvasFitBtn');
+
+      var copyActionBtn = document.getElementById('copyActionBtn');
+      var exportActionBtn = document.getElementById('exportActionBtn');
+      var exportBtnLabel = document.getElementById('exportBtnLabel');
+      var previewResolutionLabel = document.getElementById('previewResolutionLabel');
+
+      // Progress Modal
+      var exportProgressModal = document.getElementById('exportProgressModal');
+      var exportProgressBar = document.getElementById('exportProgressBar');
+      var exportProgressCurrent = document.getElementById('exportProgressCurrent');
+      var exportProgressPct = document.getElementById('exportProgressPct');
+
+      // Toast container
+      var toastContainer = document.getElementById('toastContainer');
+
+      // Dragging state
+      var isDragging = false;
+      var dragTarget = 'logo'; // 'logo' or 'shape'
+      var dragStartX = 0;
+      var dragStartY = 0;
+      var initialOffsetX = 0;
+      var initialOffsetY = 0;
+      var PREVIEW_BASE = 420;
+
+      // Temporary working copy for modal editing
+      var workingLogo = null;
+
+      // --- MATHEMATICAL IMAGE DIMENSIONS & SCALING CALCULATION ---
+      function getDrawDimensions(logo, size) {
+        var W = logo.width || 400;
+        var H = logo.height || 400;
+        var D = size;
+        var baseScale = 1;
+
+        if (logo.fitMode === 'cover') {
+          // COVER: Scale so image completely covers the circular frame, clipping excess outside
+          baseScale = D / Math.min(W, H);
+        } else {
+          // CONTAIN: Scale so complete logo fits inside circular frame without cutting off content
+          var diagonal = Math.sqrt(W * W + H * H);
+          var scaleDiag = (D * 0.92) / diagonal;
+          var scaleBox = (D * 0.88) / Math.max(W, H);
+          baseScale = Math.min(scaleBox, scaleDiag);
+        }
+
+        var zoomMultiplier = (logo.zoom || 100) / 100;
+        var finalScale = baseScale * zoomMultiplier;
+
+        return {
+          drawW: W * finalScale,
+          drawH: H * finalScale,
+          finalScale: finalScale
+        };
+      }
+
+      // --- DRAW INDIVIDUAL DECORATIVE SHAPE GEOMETRY ---
+      function drawShapeGeometry(ctx, shape, size) {
+        var scaleRatio = size / PREVIEW_BASE;
+        var w = (shape.width || 180) * scaleRatio;
+        var h = (shape.height || 180) * scaleRatio;
+        var type = shape.type || 'circle';
+
+        ctx.fillStyle = shape.color || '#38BDF8';
+
+        switch (type) {
+          case 'circle':
+            ctx.beginPath();
+            ctx.arc(0, 0, Math.min(w, h) / 2, 0, Math.PI * 2);
+            ctx.fill();
+            break;
+
+          case 'ellipse':
+            ctx.beginPath();
+            ctx.ellipse(0, 0, Math.max(1, w / 2), Math.max(1, h / 2), 0, 0, Math.PI * 2);
+            ctx.fill();
+            break;
+
+          case 'square':
+            var s = Math.min(w, h);
+            ctx.fillRect(-s / 2, -s / 2, s, s);
+            break;
+
+          case 'rectangle':
+            ctx.fillRect(-w / 2, -h / 2, w, h);
+            break;
+
+          case 'rounded-rect':
+            var r = Math.min(w, h) * 0.2;
+            if (ctx.roundRect) {
+              ctx.beginPath();
+              ctx.roundRect(-w / 2, -h / 2, w, h, [r]);
+              ctx.fill();
+            } else {
+              drawFallbackRoundRect(ctx, -w / 2, -h / 2, w, h, r);
+            }
+            break;
+
+          case 'pill':
+            var pr = Math.min(w, h) / 2;
+            if (ctx.roundRect) {
+              ctx.beginPath();
+              ctx.roundRect(-w / 2, -h / 2, w, h, [pr]);
+              ctx.fill();
+            } else {
+              drawFallbackRoundRect(ctx, -w / 2, -h / 2, w, h, pr);
+            }
+            break;
+
+          case 'blob':
+            // Abstract smooth curved blob shape
+            var rx = w / 2;
+            var ry = h / 2;
+            ctx.beginPath();
+            ctx.moveTo(-rx * 0.8, -ry * 0.2);
+            ctx.bezierCurveTo(-rx * 0.9, -ry * 0.8, -rx * 0.2, -ry * 0.95, 0, -ry * 0.85);
+            ctx.bezierCurveTo(rx * 0.35, -ry * 0.75, rx * 0.95, -ry * 0.55, rx * 0.85, 0);
+            ctx.bezierCurveTo(rx * 0.75, ry * 0.65, rx * 0.35, ry * 0.95, 0, ry * 0.9);
+            ctx.bezierCurveTo(-rx * 0.45, ry * 0.85, -rx * 0.8, ry * 0.65, -rx * 0.9, 0);
+            ctx.closePath();
+            ctx.fill();
+            break;
+
+          case 'accent':
+            // Ring / geometric accent with inner cutout
+            var outR = Math.min(w, h) / 2;
+            var inR = outR * 0.65;
+            ctx.beginPath();
+            ctx.arc(0, 0, outR, 0, Math.PI * 2, false);
+            ctx.arc(0, 0, inR, 0, Math.PI * 2, true);
+            ctx.closePath();
+            ctx.fill();
+            break;
+
+          default:
+            ctx.fillRect(-w / 2, -h / 2, w, h);
+            break;
+        }
+      }
+
+      function drawFallbackRoundRect(ctx, x, y, width, height, radius) {
+        ctx.beginPath();
+        ctx.moveTo(x + radius, y);
+        ctx.lineTo(x + width - radius, y);
+        ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+        ctx.lineTo(x + width, y + height - radius);
+        ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+        ctx.lineTo(x + radius, y + height);
+        ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+        ctx.lineTo(x, y + radius);
+        ctx.quadraticCurveTo(x, y, x + radius, y);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      // Helper to convert hex + opacity (0-100) to rgba
+      function hexToRgba(hex, opacityPct) {
+        var cleanHex = hex.replace('#', '');
+        if (cleanHex.length === 3) {
+          cleanHex = cleanHex.split('').map(function (c) { return c + c; }).join('');
+        }
+        var num = parseInt(cleanHex, 16);
+        if (isNaN(num)) return hex;
+        var r = (num >> 16) & 255;
+        var g = (num >> 8) & 255;
+        var b = num & 255;
+        var a = Math.max(0, Math.min(1, opacityPct / 100));
+        return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
+      }
+
+      // --- CORE CIRCULAR IMAGE MASKING ENGINE ---
+      // Renders the complete composition onto a square canvas with actual circular clipping path
+      // Layer 1: Background (inside circle)
+      // Layer 2: Decorative Shapes (behind logo, inside circle)
+      // Layer 3: Original Logo (on top, inside circle)
+      // All pixels outside the circular clipping path strictly remain transparent (alpha = 0)
+      function drawCircularLogo(canvas, logo, size) {
+        var ctx = canvas.getContext('2d', { alpha: true });
+        canvas.width = size;
+        canvas.height = size;
+
+        // 1. Ensure whole canvas is clear and transparent
+        ctx.clearRect(0, 0, size, size);
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+
+        // 2. Save initial state before creating clipping path
+        ctx.save();
+
+        // 3. Create circular clipping path
+        ctx.beginPath();
+        ctx.arc(
+          size / 2,
+          size / 2,
+          size / 2,
+          0,
+          Math.PI * 2
+        );
+        ctx.closePath();
+        ctx.clip();
+
+        // 4. LAYER 1: Background fill inside circle
+        var bgType = logo.bgType || (logo.bgColor && logo.bgColor !== 'transparent' ? 'solid' : 'transparent');
+        var bgOpacity = (logo.bgOpacity !== undefined) ? logo.bgOpacity : 100;
+
+        if (bgType === 'solid') {
+          var color = logo.bgColor || '#FFFFFF';
+          ctx.fillStyle = hexToRgba(color, bgOpacity);
+          ctx.fillRect(0, 0, size, size);
+        } else if (bgType === 'gradient' && logo.gradient) {
+          var grad = logo.gradient;
+          var c1 = hexToRgba(grad.color1 || '#4F46E5', bgOpacity);
+          var c2 = hexToRgba(grad.color2 || '#06B6D4', bgOpacity);
+          var canvasGrad;
+
+          if (grad.direction === 'to-right') {
+            canvasGrad = ctx.createLinearGradient(0, size / 2, size, size / 2);
+          } else if (grad.direction === 'diagonal') {
+            canvasGrad = ctx.createLinearGradient(0, 0, size, size);
+          } else if (grad.direction === 'radial') {
+            canvasGrad = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+          } else {
+            // to-bottom
+            canvasGrad = ctx.createLinearGradient(size / 2, 0, size / 2, size);
+          }
+          canvasGrad.addColorStop(0, c1);
+          canvasGrad.addColorStop(1, c2);
+          ctx.fillStyle = canvasGrad;
+          ctx.fillRect(0, 0, size, size);
+        }
+
+        // 5. LAYER 2: Decorative shape layers (drawn in array order)
+        if (logo.shapes && logo.shapes.length > 0) {
+          var scaleRatio = size / PREVIEW_BASE;
+          logo.shapes.forEach(function (shape) {
+            if (shape.visible === false) return;
+
+            ctx.save();
+            var shapeX = (size / 2) + ((shape.x || 0) * scaleRatio);
+            var shapeY = (size / 2) + ((shape.y || 0) * scaleRatio);
+            
+            ctx.translate(shapeX, shapeY);
+            ctx.rotate(((shape.rotation || 0) * Math.PI) / 180);
+            ctx.globalAlpha = Math.max(0, Math.min(1, (shape.opacity !== undefined ? shape.opacity : 100) / 100));
+
+            drawShapeGeometry(ctx, shape, size);
+            ctx.restore();
+          });
+        }
+
+        // 6. LAYER 3: Original uploaded logo (always on top of background & decorative shapes)
+        if (logo.image) {
+          ctx.save();
+          var cx = size / 2;
+          var cy = size / 2;
+
+          var logoScaleRatio = size / PREVIEW_BASE;
+          var ox = (logo.offsetX || 0) * logoScaleRatio;
+          var oy = (logo.offsetY || 0) * logoScaleRatio;
+
+          ctx.translate(cx + ox, cy + oy);
+          ctx.rotate(((logo.rotation || 0) * Math.PI) / 180);
+          ctx.scale(logo.flipX ? -1 : 1, logo.flipY ? -1 : 1);
+
+          var dims = getDrawDimensions(logo, size);
+          ctx.drawImage(logo.image, -dims.drawW / 2, -dims.drawH / 2, dims.drawW, dims.drawH);
+          ctx.restore();
+        }
+
+        // 7. Restore clipping state
+        ctx.restore();
+      }
+
+      // --- INITIALIZATION ---
+      function init() {
+        attachEventListeners();
+        loadSampleBatch(SAMPLES);
+        updateUI();
+      }
+
+      // --- LOGO CREATION WITH INDEPENDENT BACKGROUND & SHAPES CONFIGURATION ---
+      function createLogoItem(img, fileName, originalSrc) {
+        var w = img.naturalWidth || img.width || 400;
+        var h = img.naturalHeight || img.height || 400;
+        var ar = w / h;
+        
+        return {
+          id: getNextId(),
+          fileName: fileName,
+          image: img,
+          originalSrc: originalSrc,
+          width: w,
+          height: h,
+          aspectRatio: ar,
+          fitMode: state.globalFitMode,
+          zoom: 100,
+          offsetX: 0,
+          offsetY: 0,
+          rotation: 0,
+          flipX: false,
+          flipY: false,
+          
+          // Independent Background configuration
+          bgType: (state.globalBgColor && state.globalBgColor !== 'transparent') ? 'solid' : 'transparent',
+          bgColor: state.globalBgColor || 'transparent',
+          bgOpacity: 100,
+          gradient: {
+            direction: 'diagonal',
+            color1: '#4F46E5',
+            color2: '#06B6D4'
+          },
+          
+          // Independent Shapes configuration
+          shapes: [],
+          
+          isCustomized: false,
+          status: 'Ready'
+        };
+      }
+
+      // Deep clone logo object so editing is non-destructive until Save Changes
+      function cloneLogo(logo) {
+        return {
+          id: logo.id,
+          fileName: logo.fileName,
+          image: logo.image,
+          originalSrc: logo.originalSrc,
+          width: logo.width,
+          height: logo.height,
+          aspectRatio: logo.aspectRatio,
+          fitMode: logo.fitMode,
+          zoom: logo.zoom,
+          offsetX: logo.offsetX,
+          offsetY: logo.offsetY,
+          rotation: logo.rotation,
+          flipX: logo.flipX,
+          flipY: logo.flipY,
+          bgType: logo.bgType,
+          bgColor: logo.bgColor,
+          bgOpacity: logo.bgOpacity,
+          gradient: Object.assign({}, logo.gradient),
+          shapes: (logo.shapes || []).map(function (s) { return Object.assign({}, s); }),
+          isCustomized: logo.isCustomized,
+          status: logo.status
+        };
+      }
+
+      // --- BULK LOADING & FILE HANDLING ---
+      function handleFileList(files) {
+        if (!files || files.length === 0) return;
+        var validTypes = ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'];
+
+        // Batch warning for large batches (50+)
+        if (files.length >= 50) {
+          showToast('Processing ' + files.length + ' logos locally in browser memory...', 'info');
+        }
+
+        Array.from(files).forEach(function (file) {
+          if (validTypes.indexOf(file.type) === -1 && !file.name.match(/\.(png|jpg|jpeg|webp|svg)$/i)) {
+            return;
+          }
+          var reader = new FileReader();
+          reader.onload = function (e) {
+            var img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = function () {
+              var item = createLogoItem(img, file.name, e.target.result);
+              state.logos.push(item);
+              state.selectedIds.add(item.id);
+              updateUI();
+            };
+            img.src = e.target.result;
+          };
+          reader.readAsDataURL(file);
+        });
+
+        setTimeout(function () {
+          showToast('Uploaded ' + files.length + ' file(s)', 'info');
+        }, 300);
+      }
+
+      function loadSampleBatch(samples) {
+        samples.forEach(function (sample) {
+          var img = new Image();
+          var src = 'data:image/svg+xml;utf8,' + encodeURIComponent(sample.svg);
+          img.crossOrigin = 'anonymous';
+          img.onload = function () {
+            var item = createLogoItem(img, sample.name, src);
+            state.logos.push(item);
+            state.selectedIds.add(item.id);
+            updateUI();
+          };
+          img.src = src;
+        });
+      }
+
+      // --- RENDERING INDIVIDUAL CARD ON DASHBOARD ---
+      function renderLogoCard(logo) {
+        var card = document.createElement('div');
+        var isSelected = state.selectedIds.has(logo.id);
+        
+        card.className = 'bg-white rounded-xl border ' + (isSelected ? 'border-indigo-500 ring-2 ring-indigo-500/20 shadow-md' : 'border-slate-200 shadow-xs') + ' p-3.5 flex flex-col items-center justify-between transition-all hover:shadow-md relative group';
+
+        // Top Row: Checkbox + Status Badge + Remove
+        var topRow = document.createElement('div');
+        topRow.className = 'w-full flex items-center justify-between mb-2';
+
+        var checkLabel = document.createElement('label');
+        checkLabel.className = 'flex items-center space-x-1.5 cursor-pointer';
+        var checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = isSelected;
+        checkbox.className = 'w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300';
+        checkbox.addEventListener('change', function (e) {
+          e.stopPropagation();
+          if (checkbox.checked) {
+            state.selectedIds.add(logo.id);
+          } else {
+            state.selectedIds.delete(logo.id);
+          }
+          updateUI();
+        });
+        checkLabel.appendChild(checkbox);
+
+        var statusBadge = document.createElement('span');
+        statusBadge.className = 'text-[10px] font-semibold px-2 py-0.5 rounded-full ' + (logo.isCustomized ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-slate-100 text-slate-600');
+        statusBadge.textContent = logo.isCustomized ? 'Customized' : (logo.fitMode === 'cover' ? 'Cover' : 'Contain');
+
+        var removeBtn = document.createElement('button');
+        removeBtn.title = 'Remove logo';
+        removeBtn.className = 'text-slate-400 hover:text-rose-600 p-1 rounded transition opacity-80 group-hover:opacity-100';
+        removeBtn.innerHTML = '<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+        removeBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          removeLogo(logo.id);
+        });
+
+        topRow.appendChild(checkLabel);
+        topRow.appendChild(statusBadge);
+        topRow.appendChild(removeBtn);
+        card.appendChild(topRow);
+
+        // Center: Circular Canvas Preview (actual canvas clipping, transparent outside)
+        var previewContainer = document.createElement('div');
+        previewContainer.className = 'w-28 h-28 sm:w-32 sm:h-32 checker-subtle shadow-inner relative flex items-center justify-center my-1 cursor-pointer overflow-hidden rounded-xl border border-slate-200';
+        previewContainer.title = 'Click to edit ' + logo.fileName;
+        previewContainer.addEventListener('click', function () {
+          openEditor(logo.id);
+        });
+
+        var canvas = document.createElement('canvas');
+        canvas.className = 'w-full h-full';
+        drawCircularLogo(canvas, logo, 140);
+        previewContainer.appendChild(canvas);
+        card.appendChild(previewContainer);
+
+        // Filename and dimensions
+        var metaBox = document.createElement('div');
+        metaBox.className = 'w-full text-center mt-2 overflow-hidden';
+        
+        var nameEl = document.createElement('div');
+        nameEl.className = 'text-xs font-semibold text-slate-800 truncate px-1';
+        nameEl.textContent = logo.fileName;
+        nameEl.title = logo.fileName;
+
+        var dimEl = document.createElement('div');
+        dimEl.className = 'text-[10px] text-slate-400 truncate mt-0.5';
+        dimEl.textContent = logo.width + '×' + logo.height + ' • ' + (logo.aspectRatio > 1.3 ? 'Horizontal' : (logo.aspectRatio < 0.8 ? 'Vertical' : 'Square'));
+
+        metaBox.appendChild(nameEl);
+        metaBox.appendChild(dimEl);
+        card.appendChild(metaBox);
+
+        // Footer Actions: Edit & Quick Export
+        var btnGroup = document.createElement('div');
+        btnGroup.className = 'w-full grid grid-cols-2 gap-1.5 mt-3 pt-2 border-t border-slate-100';
+
+        var editBtn = document.createElement('button');
+        editBtn.className = 'py-1.5 px-2 text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition flex items-center justify-center space-x-1';
+        editBtn.innerHTML = '<svg class="w-3 h-3 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg><span>Edit</span>';
+        editBtn.addEventListener('click', function () {
+          openEditor(logo.id);
+        });
+
+        var quickExportBtn = document.createElement('button');
+        quickExportBtn.className = 'py-1.5 px-2 text-xs font-medium bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg transition flex items-center justify-center space-x-1';
+        quickExportBtn.innerHTML = '<svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg><span>PNG</span>';
+        quickExportBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          exportSingleLogoPNG(logo);
+        });
+
+        btnGroup.appendChild(editBtn);
+        btnGroup.appendChild(quickExportBtn);
+        card.appendChild(btnGroup);
+
+        return card;
+      }
+
+      // --- REMOVE / CLEAR LOGOS ---
+      function removeLogo(id) {
+        state.logos = state.logos.filter(function (item) { return item.id !== id; });
+        state.selectedIds.delete(id);
+        updateUI();
+        showToast('Logo removed', 'info');
+      }
+
+      function clearAllLogos() {
+        if (state.logos.length === 0) return;
+        state.logos = [];
+        state.selectedIds.clear();
+        updateUI();
+        showToast('All logos cleared', 'info');
+      }
+
+      function removeSelectedLogos() {
+        var count = state.selectedIds.size;
+        if (count === 0) {
+          showToast('No logos selected to remove', 'error');
+          return;
+        }
+        state.logos = state.logos.filter(function (item) { return !state.selectedIds.has(item.id); });
+        state.selectedIds.clear();
+        updateUI();
+        showToast('Removed ' + count + ' selected logo(s)', 'info');
+      }
+
+      // --- TAB SWITCHING IN EDITOR MODAL ---
+      function switchEditorTab(tabName) {
+        state.activeTab = tabName;
+        
+        // Update tab buttons style
+        var activeClass = 'px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 bg-white text-indigo-700 shadow-sm border border-slate-200';
+        var inactiveClass = 'px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition flex items-center space-x-1.5';
+
+        editorTabLogoBtn.className = (tabName === 'logo') ? activeClass : inactiveClass;
+        editorTabBgBtn.className = (tabName === 'background') ? activeClass : inactiveClass;
+        editorTabShapesBtn.className = (tabName === 'shapes') ? activeClass : inactiveClass;
+
+        // Toggle section visibility
+        editorSectionLogo.classList.toggle('hidden', tabName !== 'logo');
+        editorSectionBg.classList.toggle('hidden', tabName !== 'background');
+        editorSectionShapes.classList.toggle('hidden', tabName !== 'shapes');
+
+        if (tabName === 'shapes') {
+          dragHintText.textContent = 'Drag shape or logo • Select shape in list to customize';
+        } else if (tabName === 'background') {
+          dragHintText.textContent = 'Background fills circular interior only';
+        } else {
+          dragHintText.textContent = 'Drag logo inside circle • Mouse wheel to zoom';
+        }
+      }
+
+      // --- INDIVIDUAL EDITOR MODAL WORKSPACE ---
+      function openEditor(logoId) {
+        var logo = state.logos.find(function (l) { return l.id === logoId; });
+        if (!logo) return;
+
+        state.editingLogoId = logoId;
+        workingLogo = cloneLogo(logo);
+        state.selectedShapeId = (workingLogo.shapes && workingLogo.shapes.length > 0) ? workingLogo.shapes[0].id : null;
+
+        switchEditorTab('logo');
+        editorModal.classList.remove('hidden');
+        setupCanvasSize();
+        syncControls();
+        render();
+      }
+
+      function setupCanvasSize() {
+        var dpr = window.devicePixelRatio || 1;
+        var size = PREVIEW_BASE;
+        previewCanvas.width = Math.round(size * dpr);
+        previewCanvas.height = Math.round(size * dpr);
+        previewCanvas.style.width = size + 'px';
+        previewCanvas.style.height = size + 'px';
+        previewCtx.resetTransform();
+        previewCtx.scale(dpr, dpr);
+      }
+
+      function syncControls() {
+        if (!workingLogo) return;
+
+        var currentIndex = state.logos.findIndex(function (l) { return l.id === workingLogo.id; });
+        editorCounter.textContent = (currentIndex + 1) + ' of ' + state.logos.length;
+        panelLogoName.textContent = workingLogo.fileName;
+        panelLogoMeta.textContent = workingLogo.width + ' × ' + workingLogo.height + ' px • ' + (workingLogo.aspectRatio > 1.3 ? 'Horizontal' : (workingLogo.aspectRatio < 0.8 ? 'Vertical' : 'Square'));
+
+        thumbPreviewImg.src = workingLogo.originalSrc || '';
+
+        // Tab 1: Logo
+        zoomRange.value = workingLogo.zoom;
+        zoomValText.textContent = workingLogo.zoom + '%';
+
+        posXRange.value = workingLogo.offsetX;
+        posXValText.textContent = workingLogo.offsetX + ' px';
+
+        posYRange.value = workingLogo.offsetY;
+        posYValText.textContent = workingLogo.offsetY + ' px';
+
+        rotationRange.value = workingLogo.rotation;
+        rotationValText.textContent = workingLogo.rotation + '°';
+
+        if (workingLogo.fitMode === 'contain') {
+          fitContainBtn.className = 'py-2 px-3 rounded-md text-xs font-semibold bg-white text-indigo-700 shadow-sm border border-slate-200 transition';
+          fitCoverBtn.className = 'py-2 px-3 rounded-md text-xs font-medium text-slate-600 hover:text-slate-900 transition';
+          fitModeDesc.textContent = 'Contain: Complete logo visible without cutting.';
+        } else {
+          fitCoverBtn.className = 'py-2 px-3 rounded-md text-xs font-semibold bg-white text-indigo-700 shadow-sm border border-slate-200 transition';
+          fitContainBtn.className = 'py-2 px-3 rounded-md text-xs font-medium text-slate-600 hover:text-slate-900 transition';
+          fitModeDesc.textContent = 'Cover: Scales logo to completely cover circle frame.';
+        }
+
+        // Tab 2: Background
+        syncBackgroundControls();
+
+        // Tab 3: Shapes
+        syncShapesControls();
+
+        exportBtnLabel.textContent = 'Export PNG (' + state.globalExportSize + ' × ' + state.globalExportSize + ')';
+        previewResolutionLabel.textContent = state.globalExportSize + ' × ' + state.globalExportSize + ' px';
+      }
+
+      function syncBackgroundControls() {
+        if (!workingLogo) return;
+
+        var bgType = workingLogo.bgType || 'transparent';
+        var bgColor = workingLogo.bgColor || 'transparent';
+        var bgOpacity = (workingLogo.bgOpacity !== undefined) ? workingLogo.bgOpacity : 100;
+
+        bgOpacityRange.value = bgOpacity;
+        bgOpacityValText.textContent = bgOpacity + '%';
+
+        // Reset preset highlight borders
+        var presetBtns = [
+          bgPresetTransparent, bgPresetWhite, bgPresetBlack, bgPresetLightGrey,
+          bgPresetDarkGrey, bgPresetLightBlue, bgPresetNavyBlue, bgPresetBeige,
+          bgPresetSoftPink, bgPresetLightGreen, bgPresetCustom, bgPresetGradient
+        ];
+        presetBtns.forEach(function (btn) {
+          btn.classList.remove('border-2', 'border-indigo-600', 'bg-indigo-50/50');
+          btn.classList.add('border-slate-200');
+        });
+
+        // Toggle custom & gradient panels
+        bgCustomColorControls.classList.add('hidden');
+        bgGradientControls.classList.add('hidden');
+
+        if (bgType === 'transparent') {
+          bgPresetTransparent.classList.add('border-2', 'border-indigo-600', 'bg-indigo-50/50');
+        } else if (bgType === 'gradient') {
+          bgPresetGradient.classList.add('border-2', 'border-indigo-600', 'bg-indigo-50/50');
+          bgGradientControls.classList.remove('hidden');
+          if (workingLogo.gradient) {
+            bgGradColor1Picker.value = workingLogo.gradient.color1 || '#4F46E5';
+            bgGradColor1Hex.value = workingLogo.gradient.color1 || '#4F46E5';
+            bgGradColor2Picker.value = workingLogo.gradient.color2 || '#06B6D4';
+            bgGradColor2Hex.value = workingLogo.gradient.color2 || '#06B6D4';
+            bgGradDirectionSelect.value = workingLogo.gradient.direction || 'diagonal';
+          }
+        } else {
+          // Solid background
+          var hex = bgColor.toUpperCase();
+          if (hex === '#FFFFFF') bgPresetWhite.classList.add('border-2', 'border-indigo-600', 'bg-indigo-50/50');
+          else if (hex === '#0F172A' || hex === '#000000') bgPresetBlack.classList.add('border-2', 'border-indigo-600', 'bg-indigo-50/50');
+          else if (hex === '#F1F5F9') bgPresetLightGrey.classList.add('border-2', 'border-indigo-600', 'bg-indigo-50/50');
+          else if (hex === '#334155') bgPresetDarkGrey.classList.add('border-2', 'border-indigo-600', 'bg-indigo-50/50');
+          else if (hex === '#E0F2FE') bgPresetLightBlue.classList.add('border-2', 'border-indigo-600', 'bg-indigo-50/50');
+          else if (hex === '#1E3A8A') bgPresetNavyBlue.classList.add('border-2', 'border-indigo-600', 'bg-indigo-50/50');
+          else if (hex === '#FEF3C7') bgPresetBeige.classList.add('border-2', 'border-indigo-600', 'bg-indigo-50/50');
+          else if (hex === '#FCE7F3') bgPresetSoftPink.classList.add('border-2', 'border-indigo-600', 'bg-indigo-50/50');
+          else if (hex === '#DCFCE7') bgPresetLightGreen.classList.add('border-2', 'border-indigo-600', 'bg-indigo-50/50');
+          else {
+            bgPresetCustom.classList.add('border-2', 'border-indigo-600', 'bg-indigo-50/50');
+            bgCustomColorControls.classList.remove('hidden');
+          }
+
+          bgCustomColorPicker.value = bgColor;
+          bgCustomHexInput.value = bgColor;
+          bgCustomSampleDot.style.backgroundColor = bgColor;
+        }
+      }
+
+      function syncShapesControls() {
+        if (!workingLogo) return;
+
+        var shapes = workingLogo.shapes || [];
+        shapeLayerCountText.textContent = shapes.length + (shapes.length === 1 ? ' shape' : ' shapes');
+
+        shapeLayersList.innerHTML = '';
+        if (shapes.length === 0) {
+          shapeLayersList.appendChild(emptyShapesNotice);
+          emptyShapesNotice.classList.remove('hidden');
+          shapeControlsBox.classList.add('hidden');
+          return;
+        }
+
+        emptyShapesNotice.classList.add('hidden');
+
+        // Check if selectedShapeId is valid
+        var selectedShape = shapes.find(function (s) { return s.id === state.selectedShapeId; });
+        if (!selectedShape) {
+          selectedShape = shapes[0];
+          state.selectedShapeId = selectedShape.id;
+        }
+
+        shapes.forEach(function (shape, idx) {
+          var item = document.createElement('div');
+          var isSelected = (shape.id === state.selectedShapeId);
+          item.className = 'flex items-center justify-between p-2 rounded-lg border text-xs cursor-pointer transition ' +
+            (isSelected ? 'bg-indigo-50 border-indigo-400 font-semibold text-indigo-900 shadow-2xs' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50');
+
+          item.addEventListener('click', function () {
+            state.selectedShapeId = shape.id;
+            syncShapesControls();
+            render();
+          });
+
+          var left = document.createElement('div');
+          left.className = 'flex items-center space-x-2 truncate';
+          
+          var dot = document.createElement('span');
+          dot.className = 'w-3.5 h-3.5 rounded-full border border-slate-300 shrink-0';
+          dot.style.backgroundColor = shape.color || '#38BDF8';
+          
+          var label = document.createElement('span');
+          label.className = 'truncate';
+          label.textContent = '#' + (idx + 1) + ' ' + (shape.type || 'Shape').toUpperCase();
+
+          left.appendChild(dot);
+          left.appendChild(label);
+
+          var right = document.createElement('div');
+          right.className = 'flex items-center space-x-1.5 text-[10px] text-slate-400 shrink-0';
+          if (shape.locked) right.innerHTML += '<span title="Locked">🔒</span>';
+          if (shape.visible === false) right.innerHTML += '<span title="Hidden">👁️‍🗨️</span>';
+          right.innerHTML += '<span>' + (shape.opacity !== undefined ? shape.opacity : 100) + '%</span>';
+
+          item.appendChild(left);
+          item.appendChild(right);
+          shapeLayersList.appendChild(item);
+        });
+
+        // Show controls for active shape
+        shapeControlsBox.classList.remove('hidden');
+        var curIdx = shapes.findIndex(function (s) { return s.id === selectedShape.id; });
+        selectedShapeTitle.textContent = 'Edit Shape #' + (curIdx + 1) + ' (' + selectedShape.type.toUpperCase() + ')';
+
+        shapeColorPicker.value = selectedShape.color || '#38BDF8';
+        shapeHexInput.value = selectedShape.color || '#38BDF8';
+
+        shapeWidthRange.value = selectedShape.width || 180;
+        shapeWidthValText.textContent = (selectedShape.width || 180) + ' px';
+
+        shapeHeightRange.value = selectedShape.height || 180;
+        shapeHeightValText.textContent = (selectedShape.height || 180) + ' px';
+
+        shapePosXRange.value = selectedShape.x || 0;
+        shapePosXValText.textContent = (selectedShape.x || 0) + ' px';
+
+        shapePosYRange.value = selectedShape.y || 0;
+        shapePosYValText.textContent = (selectedShape.y || 0) + ' px';
+
+        shapeRotationRange.value = selectedShape.rotation || 0;
+        shapeRotationValText.textContent = (selectedShape.rotation || 0) + '°';
+
+        shapeOpacityRange.value = (selectedShape.opacity !== undefined ? selectedShape.opacity : 100);
+        shapeOpacityValText.textContent = (selectedShape.opacity !== undefined ? selectedShape.opacity : 100) + '%';
+      }
+
+      function render() {
+        renderPreview();
+        renderMiniPreview();
+      }
+
+      function renderPreview() {
+        if (!workingLogo) return;
+        var size = PREVIEW_BASE;
+        var ctx = previewCtx;
+        var cx = size / 2;
+        var cy = size / 2;
+        var r = size / 2;
+
+        ctx.clearRect(0, 0, size, size);
+
+        // 1. Clip to perfect circle
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.clip();
+
+        // 2. LAYER 1: Background inside circle
+        var bgType = workingLogo.bgType || 'transparent';
+        var bgOpacity = (workingLogo.bgOpacity !== undefined) ? workingLogo.bgOpacity : 100;
+
+        if (bgType === 'transparent') {
+          drawChecker(ctx, 0, 0, size, size, 12, false, true);
+        } else if (bgType === 'solid') {
+          // Draw subtle checker underneath if opacity < 100%
+          if (bgOpacity < 100) drawChecker(ctx, 0, 0, size, size, 12, false, true);
+          ctx.fillStyle = hexToRgba(workingLogo.bgColor || '#FFFFFF', bgOpacity);
+          ctx.fillRect(0, 0, size, size);
+        } else if (bgType === 'gradient' && workingLogo.gradient) {
+          if (bgOpacity < 100) drawChecker(ctx, 0, 0, size, size, 12, false, true);
+          var grad = workingLogo.gradient;
+          var c1 = hexToRgba(grad.color1 || '#4F46E5', bgOpacity);
+          var c2 = hexToRgba(grad.color2 || '#06B6D4', bgOpacity);
+          var canvasGrad;
+
+          if (grad.direction === 'to-right') {
+            canvasGrad = ctx.createLinearGradient(0, size / 2, size, size / 2);
+          } else if (grad.direction === 'diagonal') {
+            canvasGrad = ctx.createLinearGradient(0, 0, size, size);
+          } else if (grad.direction === 'radial') {
+            canvasGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+          } else {
+            canvasGrad = ctx.createLinearGradient(size / 2, 0, size / 2, size);
+          }
+          canvasGrad.addColorStop(0, c1);
+          canvasGrad.addColorStop(1, c2);
+          ctx.fillStyle = canvasGrad;
+          ctx.fillRect(0, 0, size, size);
+        }
+
+        // 3. LAYER 2: Decorative shapes inside circle
+        if (workingLogo.shapes && workingLogo.shapes.length > 0) {
+          workingLogo.shapes.forEach(function (shape) {
+            if (shape.visible === false) return;
+
+            ctx.save();
+            var shapeX = cx + (shape.x || 0);
+            var shapeY = cy + (shape.y || 0);
+            
+            ctx.translate(shapeX, shapeY);
+            ctx.rotate(((shape.rotation || 0) * Math.PI) / 180);
+            ctx.globalAlpha = Math.max(0, Math.min(1, (shape.opacity !== undefined ? shape.opacity : 100) / 100));
+
+            drawShapeGeometry(ctx, shape, size);
+            ctx.restore();
+          });
+        }
+
+        // 4. LAYER 3: Original logo on top inside circular clip
+        if (workingLogo.image) {
+          ctx.save();
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+
+          ctx.translate(cx + workingLogo.offsetX, cy + workingLogo.offsetY);
+          ctx.rotate(((workingLogo.rotation || 0) * Math.PI) / 180);
+          ctx.scale(workingLogo.flipX ? -1 : 1, workingLogo.flipY ? -1 : 1);
+
+          var dims = getDrawDimensions(workingLogo, size);
+          ctx.drawImage(workingLogo.image, -dims.drawW / 2, -dims.drawH / 2, dims.drawW, dims.drawH);
+          ctx.restore();
+        }
+
+        ctx.restore();
+
+        // 5. Subtle Circular Boundary Guide
+        if (state.showCircleGuide) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(cx, cy, r - 1, 0, Math.PI * 2);
+          ctx.strokeStyle = '#4F46E5';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([6, 6]);
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // 6. Center Crosshair Guide
+        if (state.showCrosshair) {
+          ctx.save();
+          ctx.strokeStyle = 'rgba(79, 70, 229, 0.45)';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([4, 4]);
+
+          ctx.beginPath();
+          ctx.moveTo(cx, 0); ctx.lineTo(cx, size);
+          ctx.moveTo(0, cy); ctx.lineTo(size, cy);
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.arc(cx, cy, 6, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
+
+      function renderMiniPreview() {
+        if (!workingLogo) return;
+        drawCircularLogo(miniOutputCanvas, workingLogo, 80);
+      }
+
+      function drawChecker(ctx, x, y, w, h, size, dark, subtle) {
+        var c1 = dark ? '#0F172A' : (subtle ? '#FFFFFF' : '#F1F5F9');
+        var c2 = dark ? '#1E293B' : (subtle ? '#F8FAFC' : '#E2E8F0');
+        ctx.save();
+        for (var px = x; px < x + w; px += size) {
+          for (var py = y; py < y + h; py += size) {
+            var colIndex = Math.floor(px / size);
+            var rowIndex = Math.floor(py / size);
+            ctx.fillStyle = (colIndex + rowIndex) % 2 === 0 ? c1 : c2;
+            ctx.fillRect(px, py, size, size);
+          }
+        }
+        ctx.restore();
+      }
+
+      // --- SAVE CHANGES / CANCEL ---
+      function saveEditorChanges() {
+        if (!workingLogo) return;
+        var idx = state.logos.findIndex(function (l) { return l.id === workingLogo.id; });
+        if (idx !== -1) {
+          workingLogo.isCustomized = true;
+          state.logos[idx] = cloneLogo(workingLogo);
+        }
+        editorModal.classList.add('hidden');
+        updateUI();
+        showToast('Saved composition for ' + workingLogo.fileName, 'success');
+      }
+
+      function cancelEditorChanges() {
+        // Discard unsaved adjustments and restore previously saved configuration
+        editorModal.classList.add('hidden');
+        workingLogo = null;
+        showToast('Unsaved changes discarded', 'info');
+      }
+
+      function navigateEditor(direction) {
+        if (!workingLogo || state.logos.length === 0) return;
+        var curIdx = state.logos.findIndex(function (l) { return l.id === workingLogo.id; });
+        if (curIdx !== -1) {
+          // Auto-save changes before switching logos
+          workingLogo.isCustomized = true;
+          state.logos[curIdx] = cloneLogo(workingLogo);
+        }
+
+        var newIdx = (curIdx + direction + state.logos.length) % state.logos.length;
+        workingLogo = cloneLogo(state.logos[newIdx]);
+        state.selectedShapeId = (workingLogo.shapes && workingLogo.shapes.length > 0) ? workingLogo.shapes[0].id : null;
+        syncControls();
+        render();
+      }
+
+      // --- APPLY COMMON SETTINGS TO MULTIPLE LOGOS ---
+      function applyBatchSettings(toAll) {
+        var targets = toAll ? state.logos : state.logos.filter(function (l) { return state.selectedIds.has(l.id); });
+        
+        if (targets.length === 0) {
+          showToast('No logos selected to apply settings!', 'error');
+          return;
+        }
+
+        targets.forEach(function (logo) {
+          logo.fitMode = state.globalFitMode;
+          logo.zoom = 100;
+          logo.offsetX = 0;
+          logo.offsetY = 0;
+          logo.rotation = 0;
+          logo.bgType = (state.globalBgColor && state.globalBgColor !== 'transparent') ? 'solid' : 'transparent';
+          logo.bgColor = state.globalBgColor;
+          logo.isCustomized = true;
+        });
+
+        updateUI();
+        showToast('Applied settings to ' + targets.length + ' logo(s)', 'success');
+      }
+
+      // --- SINGLE PNG EXPORT & CLIPBOARD ---
+      function exportSingleLogoPNG(logo) {
+        var size = state.globalExportSize;
+        var expCanvas = document.createElement('canvas');
+        drawCircularLogo(expCanvas, logo, size);
+
+        expCanvas.toBlob(function (blob) {
+          if (!blob) return;
+          var cleanName = logo.fileName.replace(/\.[^/.]+$/, "");
+          var downloadName = cleanName + '_circle.png';
+
+          var url = URL.createObjectURL(blob);
+          var a = document.createElement('a');
+          a.href = url;
+          a.download = downloadName;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+
+          showToast('Downloaded ' + downloadName + ' (' + size + '×' + size + ' PNG)', 'success');
+        }, 'image/png');
+      }
+
+      function copyLogoPNGToClipboard(logo) {
+        var size = state.globalExportSize;
+        var expCanvas = document.createElement('canvas');
+        drawCircularLogo(expCanvas, logo, size);
+
+        expCanvas.toBlob(function (blob) {
+          if (!blob) return;
+          if (navigator.clipboard && window.ClipboardItem) {
+            try {
+              var item = new ClipboardItem({ 'image/png': blob });
+              navigator.clipboard.write([item]).then(function () {
+                showToast('Copied circular PNG of ' + logo.fileName + ' to clipboard!', 'success');
+              }).catch(function () {
+                exportSingleLogoPNG(logo);
+              });
+              return;
+            } catch (e) {
+              exportSingleLogoPNG(logo);
+              return;
+            }
+          }
+          exportSingleLogoPNG(logo);
+        }, 'image/png');
+      }
+
+      // --- BULK PNG EXPORT & ZIP GENERATION ---
+      async function exportBulkZIP(onlySelected) {
+        var targets = onlySelected ? state.logos.filter(function (l) { return state.selectedIds.has(l.id); }) : state.logos;
+        
+        if (targets.length === 0) {
+          showToast('No logos available to export', 'error');
+          return;
+        }
+
+        if (typeof JSZip === 'undefined') {
+          showToast('JSZip library loading... please wait a moment.', 'info');
+          return;
+        }
+
+        exportProgressModal.classList.remove('hidden');
+        exportProgressBar.style.width = '0%';
+        exportProgressCurrent.textContent = '0 / ' + targets.length;
+        exportProgressPct.textContent = '0%';
+
+        var zip = new JSZip();
+        var size = state.globalExportSize;
+        var usedNames = new Set();
+        var completed = 0;
+
+        for (var i = 0; i < targets.length; i++) {
+          var logo = targets[i];
+          
+          var expCanvas = document.createElement('canvas');
+          // Important: Every logo exports with its OWN saved background and shape layers!
+          drawCircularLogo(expCanvas, logo, size);
+
+          var blob = await new Promise(function (resolve) {
+            expCanvas.toBlob(function (b) { resolve(b); }, 'image/png');
+          });
+
+          if (blob) {
+            var baseName = logo.fileName.replace(/\.[^/.]+$/, "");
+            var cleanFileName = baseName + '_circle.png';
+            
+            var counter = 2;
+            while (usedNames.has(cleanFileName)) {
+              cleanFileName = baseName + '_circle_' + counter + '.png';
+              counter++;
+            }
+            usedNames.add(cleanFileName);
+
+            zip.file(cleanFileName, blob);
+          }
+
+          completed++;
+          var pct = Math.round((completed / targets.length) * 100);
+          exportProgressBar.style.width = pct + '%';
+          exportProgressCurrent.textContent = completed + ' / ' + targets.length;
+          exportProgressPct.textContent = pct + '%';
+
+          await new Promise(function (r) { setTimeout(r, 15); });
+        }
+
+        var zipBlob = await zip.generateAsync({ type: 'blob' }, function (metadata) {
+          exportProgressPct.textContent = Math.round(metadata.percent) + '%';
+        });
+
+        var now = new Date();
+        var dateStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+        var zipName = 'circlelogo_bulk_' + targets.length + '_logos_' + size + 'x' + size + '_' + dateStr + '.zip';
+
+        var url = URL.createObjectURL(zipBlob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = zipName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(function () { URL.revokeObjectURL(url); }, 3000);
+
+        exportProgressModal.classList.add('hidden');
+        showToast('Successfully exported ' + targets.length + ' circular PNGs into ' + zipName + '!', 'success');
+      }
+
+      // --- UI UPDATES & SYNC ---
+      function updateUI() {
+        var total = state.logos.length;
+        var selectedCount = state.selectedIds.size;
+
+        statusFilename.textContent = total + ' ' + (total === 1 ? 'logo' : 'logos');
+        statusDimensions.textContent = selectedCount + ' selected';
+        
+        if (total <= 1) {
+          navExportLabel.textContent = 'Export PNG';
+        } else {
+          navExportLabel.textContent = 'Export All (' + total + ' ZIP)';
+        }
+        
+        selectionSummaryLabel.textContent = total + ' logos uploaded | ' + selectedCount + ' selected';
+        footerTotalLabel.textContent = total + ' logos loaded';
+        footerSelectedLabel.textContent = selectedCount + ' selected';
+        footerExportResLabel.textContent = 'Resolution: ' + state.globalExportSize + ' × ' + state.globalExportSize;
+        specDimensions.textContent = state.globalExportSize + ' × ' + state.globalExportSize + ' px';
+
+        if (total === 0) {
+          statusDot.className = 'w-2.5 h-2.5 rounded-full bg-slate-400';
+          emptyStateOverlay.classList.remove('hidden');
+          logoGrid.classList.add('hidden');
+          logoGrid.innerHTML = '';
+        } else {
+          statusDot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500';
+          emptyStateOverlay.classList.add('hidden');
+          logoGrid.classList.remove('hidden');
+
+          logoGrid.innerHTML = '';
+          state.logos.forEach(function (logo) {
+            var card = renderLogoCard(logo);
+            logoGrid.appendChild(card);
+          });
+        }
+      }
+
+      // --- TOAST NOTIFICATIONS ---
+      function showToast(message, type) {
+        var toast = document.createElement('div');
+        toast.className = 'pointer-events-auto flex items-center space-x-2.5 px-4 py-2.5 rounded-xl shadow-lg text-xs font-medium border transition-all duration-300 transform translate-y-2 opacity-0';
+        
+        var iconSvg = '';
+        if (type === 'success') {
+          toast.classList.add('bg-emerald-900', 'text-white', 'border-emerald-700');
+          iconSvg = '<svg class="w-4 h-4 text-emerald-300 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+        } else if (type === 'error') {
+          toast.classList.add('bg-rose-900', 'text-white', 'border-rose-700');
+          iconSvg = '<svg class="w-4 h-4 text-rose-300 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>';
+        } else {
+          toast.classList.add('bg-slate-900', 'text-white', 'border-slate-800');
+          iconSvg = '<svg class="w-4 h-4 text-indigo-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>';
+        }
+
+        toast.innerHTML = iconSvg + '<span>' + message + '</span>';
+        toastContainer.appendChild(toast);
+
+        requestAnimationFrame(function () {
+          toast.classList.remove('translate-y-2', 'opacity-0');
+        });
+
+        setTimeout(function () {
+          toast.classList.add('translate-y-2', 'opacity-0');
+          setTimeout(function () {
+            if (toast.parentNode) {
+              toast.parentNode.removeChild(toast);
+            }
+          }, 300);
+        }, 3000);
+      }
+
+      // --- EVENT LISTENERS ---
+      function attachEventListeners() {
+        var triggerUpload = function () { fileInput.click(); };
+        navUploadBtn.addEventListener('click', triggerUpload);
+        emptyUploadBtn.addEventListener('click', triggerUpload);
+        addMoreLogosBtn.addEventListener('click', triggerUpload);
+        replaceLogoBtn.addEventListener('click', triggerUpload);
+
+        fileInput.addEventListener('change', function (e) {
+          handleFileList(e.target.files);
+          fileInput.value = '';
+        });
+
+        // Sample Loaders
+        emptyLoad12Btn.addEventListener('click', function () {
+          loadSampleBatch(SAMPLES);
+          showToast('Loaded 12 diverse sample logos', 'success');
+        });
+        load12SamplesBtn.addEventListener('click', function () {
+          loadSampleBatch(SAMPLES);
+          showToast('Loaded 12 diverse sample logos', 'success');
+        });
+
+        sampleHorizontalBtn.addEventListener('click', function () { loadSampleBatch([SAMPLES[0]]); });
+        sampleSquareBtn.addEventListener('click', function () { loadSampleBatch([SAMPLES[1]]); });
+        sampleVerticalBtn.addEventListener('click', function () { loadSampleBatch([SAMPLES[2]]); });
+        sampleVectorBtn.addEventListener('click', function () { loadSampleBatch([SAMPLES[3]]); });
+
+        emptySampleHBtn.addEventListener('click', function () { loadSampleBatch([SAMPLES[0]]); });
+        emptySampleSqBtn.addEventListener('click', function () { loadSampleBatch([SAMPLES[1]]); });
+        emptySampleVBtn.addEventListener('click', function () { loadSampleBatch([SAMPLES[2]]); });
+
+        // Drag & Drop
+        gridContainer.addEventListener('dragover', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          gridContainer.classList.add('ring-4', 'ring-indigo-400', 'ring-inset');
+        });
+        gridContainer.addEventListener('dragleave', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          gridContainer.classList.remove('ring-4', 'ring-indigo-400', 'ring-inset');
+        });
+        gridContainer.addEventListener('drop', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          gridContainer.classList.remove('ring-4', 'ring-indigo-400', 'ring-inset');
+          handleFileList(e.dataTransfer.files);
+        });
+
+        // Selection Controls
+        selectAllBtn.addEventListener('click', function () {
+          state.logos.forEach(function (l) { state.selectedIds.add(l.id); });
+          updateUI();
+        });
+        deselectAllBtn.addEventListener('click', function () {
+          state.selectedIds.clear();
+          updateUI();
+        });
+        invertSelectionBtn.addEventListener('click', function () {
+          state.logos.forEach(function (l) {
+            if (state.selectedIds.has(l.id)) {
+              state.selectedIds.delete(l.id);
+            } else {
+              state.selectedIds.add(l.id);
+            }
+          });
+          updateUI();
+        });
+        removeSelectedBtn.addEventListener('click', removeSelectedLogos);
+        navResetBtn.addEventListener('click', clearAllLogos);
+
+        // Batch Settings Controls
+        batchFitContainBtn.addEventListener('click', function () {
+          state.globalFitMode = 'contain';
+          batchFitContainBtn.className = 'flex items-center justify-center space-x-1.5 py-2 px-3 rounded-md text-xs font-semibold bg-white text-indigo-700 shadow-sm border border-slate-200 transition-all';
+          batchFitCoverBtn.className = 'flex items-center justify-center space-x-1.5 py-2 px-3 rounded-md text-xs font-medium text-slate-600 hover:text-slate-900 transition-all';
+          applyBatchSettings(false);
+        });
+        batchFitCoverBtn.addEventListener('click', function () {
+          state.globalFitMode = 'cover';
+          batchFitCoverBtn.className = 'flex items-center justify-center space-x-1.5 py-2 px-3 rounded-md text-xs font-semibold bg-white text-indigo-700 shadow-sm border border-slate-200 transition-all';
+          batchFitContainBtn.className = 'flex items-center justify-center space-x-1.5 py-2 px-3 rounded-md text-xs font-medium text-slate-600 hover:text-slate-900 transition-all';
+          applyBatchSettings(false);
+        });
+
+        applySettingsSelectedBtn.addEventListener('click', function () {
+          applyBatchSettings(false);
+        });
+        applySettingsAllBtn.addEventListener('click', function () {
+          applyBatchSettings(true);
+        });
+
+        // Resolution Cards
+        var resCards = resolutionGroup.querySelectorAll('.res-card');
+        resCards.forEach(function (card) {
+          card.addEventListener('click', function () {
+            var size = parseInt(card.getAttribute('data-size'), 10);
+            state.globalExportSize = size;
+            resCards.forEach(function (c) {
+              c.className = 'res-card p-2.5 rounded-xl border border-slate-200 bg-white hover:border-slate-300 text-left transition relative flex flex-col';
+            });
+            card.className = 'res-card p-2.5 rounded-xl border-2 border-indigo-600 bg-indigo-50/40 text-left transition relative flex flex-col';
+            updateUI();
+            if (workingLogo) syncControls();
+          });
+        });
+
+        // Batch Backgrounds
+        bgTransparentBtn.addEventListener('click', function () {
+          state.globalBgColor = 'transparent';
+          bgTransparentBtn.className = 'py-2 px-2 rounded-lg border-2 border-indigo-600 bg-indigo-50/50 text-indigo-900 text-xs font-semibold flex items-center justify-center space-x-1.5 transition';
+          bgWhiteBtn.className = 'py-2 px-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium flex items-center justify-center space-x-1.5 transition';
+          bgBlackBtn.className = 'py-2 px-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium flex items-center justify-center space-x-1.5 transition';
+          applyBatchSettings(false);
+        });
+        bgWhiteBtn.addEventListener('click', function () {
+          state.globalBgColor = '#FFFFFF';
+          bgWhiteBtn.className = 'py-2 px-2 rounded-lg border-2 border-indigo-600 bg-indigo-50/50 text-indigo-900 text-xs font-semibold flex items-center justify-center space-x-1.5 transition';
+          bgTransparentBtn.className = 'py-2 px-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium flex items-center justify-center space-x-1.5 transition';
+          bgBlackBtn.className = 'py-2 px-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium flex items-center justify-center space-x-1.5 transition';
+          applyBatchSettings(false);
+        });
+        bgBlackBtn.addEventListener('click', function () {
+          state.globalBgColor = '#0F172A';
+          bgBlackBtn.className = 'py-2 px-2 rounded-lg border-2 border-indigo-600 bg-indigo-50/50 text-indigo-900 text-xs font-semibold flex items-center justify-center space-x-1.5 transition';
+          bgTransparentBtn.className = 'py-2 px-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium flex items-center justify-center space-x-1.5 transition';
+          bgWhiteBtn.className = 'py-2 px-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium flex items-center justify-center space-x-1.5 transition';
+          applyBatchSettings(false);
+        });
+
+        // Top Nav Export Button Handler
+        navExportBtn.addEventListener('click', function () {
+          if (state.logos.length === 0) {
+            showToast('No logos uploaded to export', 'error');
+            return;
+          }
+          if (!editorModal.classList.contains('hidden') && workingLogo) {
+            exportSingleLogoPNG(workingLogo);
+          } else if (state.logos.length === 1) {
+            exportSingleLogoPNG(state.logos[0]);
+          } else {
+            exportBulkZIP(false);
+          }
+        });
+
+        exportAllMainBtn.addEventListener('click', function () { exportBulkZIP(false); });
+        exportSelectedBtn.addEventListener('click', function () { exportBulkZIP(true); });
+
+        navCopyBtn.addEventListener('click', function () {
+          if (state.logos.length === 0) {
+            showToast('No logos uploaded to copy', 'error');
+            return;
+          }
+          var selected = state.logos.filter(function (l) { return state.selectedIds.has(l.id); });
+          var target = selected.length > 0 ? selected[0] : state.logos[0];
+          copyLogoPNGToClipboard(target);
+          if (selected.length > 1) {
+            showToast('Clipboard API copies 1 image at a time. Copied "' + target.fileName + '"', 'info');
+          }
+        });
+
+        // Modal Editor Tabs
+        editorTabLogoBtn.addEventListener('click', function () { switchEditorTab('logo'); });
+        editorTabBgBtn.addEventListener('click', function () { switchEditorTab('background'); });
+        editorTabShapesBtn.addEventListener('click', function () { switchEditorTab('shapes'); });
+
+        // Modal Editor Event Listeners
+        editorCloseBtn.addEventListener('click', cancelEditorChanges);
+        editorCancelBtn.addEventListener('click', cancelEditorChanges);
+        editorSaveBtn.addEventListener('click', saveEditorChanges);
+        editorPrevBtn.addEventListener('click', function () { navigateEditor(-1); });
+        editorNextBtn.addEventListener('click', function () { navigateEditor(1); });
+
+        // Tab 1: Logo adjustments
+        fitContainBtn.addEventListener('click', function () {
+          if (!workingLogo) return;
+          workingLogo.fitMode = 'contain';
+          workingLogo.zoom = 100;
+          workingLogo.offsetX = 0;
+          workingLogo.offsetY = 0;
+          syncControls();
+          render();
+        });
+
+        fitCoverBtn.addEventListener('click', function () {
+          if (!workingLogo) return;
+          workingLogo.fitMode = 'cover';
+          workingLogo.zoom = 100;
+          workingLogo.offsetX = 0;
+          workingLogo.offsetY = 0;
+          syncControls();
+          render();
+        });
+
+        zoomRange.addEventListener('input', function (e) {
+          if (!workingLogo) return;
+          workingLogo.zoom = parseInt(e.target.value, 10);
+          zoomValText.textContent = workingLogo.zoom + '%';
+          render();
+        });
+        zoomInBtn.addEventListener('click', function () {
+          if (!workingLogo) return;
+          workingLogo.zoom = Math.min(400, workingLogo.zoom + 10);
+          syncControls();
+          render();
+        });
+        zoomOutBtn.addEventListener('click', function () {
+          if (!workingLogo) return;
+          workingLogo.zoom = Math.max(10, workingLogo.zoom - 10);
+          syncControls();
+          render();
+        });
+
+        zoomPreset50.addEventListener('click', function () { if (workingLogo) { workingLogo.zoom = 50; syncControls(); render(); } });
+        zoomPreset100.addEventListener('click', function () { if (workingLogo) { workingLogo.zoom = 100; syncControls(); render(); } });
+        zoomPreset150.addEventListener('click', function () { if (workingLogo) { workingLogo.zoom = 150; syncControls(); render(); } });
+        zoomPreset200.addEventListener('click', function () { if (workingLogo) { workingLogo.zoom = 200; syncControls(); render(); } });
+        zoomPreset300.addEventListener('click', function () { if (workingLogo) { workingLogo.zoom = 300; syncControls(); render(); } });
+
+        posXRange.addEventListener('input', function (e) {
+          if (!workingLogo) return;
+          workingLogo.offsetX = parseInt(e.target.value, 10);
+          posXValText.textContent = workingLogo.offsetX + ' px';
+          render();
+        });
+        posYRange.addEventListener('input', function (e) {
+          if (!workingLogo) return;
+          workingLogo.offsetY = parseInt(e.target.value, 10);
+          posYValText.textContent = workingLogo.offsetY + ' px';
+          render();
+        });
+
+        centerHBtn.addEventListener('click', function () {
+          if (!workingLogo) return;
+          workingLogo.offsetX = 0;
+          syncControls();
+          render();
+        });
+        centerVBtn.addEventListener('click', function () {
+          if (!workingLogo) return;
+          workingLogo.offsetY = 0;
+          syncControls();
+          render();
+        });
+        centerBothBtn.addEventListener('click', function () {
+          if (!workingLogo) return;
+          workingLogo.offsetX = 0;
+          workingLogo.offsetY = 0;
+          syncControls();
+          render();
+        });
+
+        rotationRange.addEventListener('input', function (e) {
+          if (!workingLogo) return;
+          workingLogo.rotation = parseInt(e.target.value, 10);
+          rotationValText.textContent = workingLogo.rotation + '°';
+          render();
+        });
+        rotateCCWBtn.addEventListener('click', function () {
+          if (!workingLogo) return;
+          workingLogo.rotation = ((workingLogo.rotation - 90 + 180) % 360) - 180;
+          syncControls();
+          render();
+        });
+        rotateCWBtn.addEventListener('click', function () {
+          if (!workingLogo) return;
+          workingLogo.rotation = ((workingLogo.rotation + 90 + 180) % 360) - 180;
+          syncControls();
+          render();
+        });
+        flipHBtn.addEventListener('click', function () {
+          if (!workingLogo) return;
+          workingLogo.flipX = !workingLogo.flipX;
+          render();
+        });
+        resetRotationBtn.addEventListener('click', function () {
+          if (!workingLogo) return;
+          workingLogo.rotation = 0;
+          syncControls();
+          render();
+        });
+
+        resetAdjustmentsBtn.addEventListener('click', function () {
+          if (!workingLogo) return;
+          workingLogo.offsetX = 0;
+          workingLogo.offsetY = 0;
+          workingLogo.rotation = 0;
+          workingLogo.flipX = false;
+          workingLogo.flipY = false;
+          workingLogo.fitMode = state.globalFitMode;
+          workingLogo.zoom = 100;
+          syncControls();
+          render();
+          showToast('Reset logo transformations', 'info');
+        });
+
+        // Tab 2: Background Controls
+        function setSolidBg(color) {
+          if (!workingLogo) return;
+          workingLogo.bgType = 'solid';
+          workingLogo.bgColor = color;
+          syncBackgroundControls();
+          render();
+        }
+
+        bgPresetTransparent.addEventListener('click', function () {
+          if (!workingLogo) return;
+          workingLogo.bgType = 'transparent';
+          workingLogo.bgColor = 'transparent';
+          syncBackgroundControls();
+          render();
+        });
+        bgPresetWhite.addEventListener('click', function () { setSolidBg('#FFFFFF'); });
+        bgPresetBlack.addEventListener('click', function () { setSolidBg('#0F172A'); });
+        bgPresetLightGrey.addEventListener('click', function () { setSolidBg('#F1F5F9'); });
+        bgPresetDarkGrey.addEventListener('click', function () { setSolidBg('#334155'); });
+        bgPresetLightBlue.addEventListener('click', function () { setSolidBg('#E0F2FE'); });
+        bgPresetNavyBlue.addEventListener('click', function () { setSolidBg('#1E3A8A'); });
+        bgPresetBeige.addEventListener('click', function () { setSolidBg('#FEF3C7'); });
+        bgPresetSoftPink.addEventListener('click', function () { setSolidBg('#FCE7F3'); });
+        bgPresetLightGreen.addEventListener('click', function () { setSolidBg('#DCFCE7'); });
+        
+        bgPresetCustom.addEventListener('click', function () {
+          if (!workingLogo) return;
+          workingLogo.bgType = 'solid';
+          if (!workingLogo.bgColor || workingLogo.bgColor === 'transparent') {
+            workingLogo.bgColor = '#4F46E5';
+          }
+          syncBackgroundControls();
+          render();
+        });
+
+        bgPresetGradient.addEventListener('click', function () {
+          if (!workingLogo) return;
+          workingLogo.bgType = 'gradient';
+          if (!workingLogo.gradient) {
+            workingLogo.gradient = { direction: 'diagonal', color1: '#4F46E5', color2: '#06B6D4' };
+          }
+          syncBackgroundControls();
+          render();
+        });
+
+        resetBgBtn.addEventListener('click', function () {
+          if (!workingLogo) return;
+          workingLogo.bgType = 'transparent';
+          workingLogo.bgColor = 'transparent';
+          workingLogo.bgOpacity = 100;
+          syncBackgroundControls();
+          render();
+          showToast('Reset background to transparent', 'info');
+        });
+
+        bgCustomColorPicker.addEventListener('input', function (e) {
+          if (!workingLogo) return;
+          workingLogo.bgType = 'solid';
+          workingLogo.bgColor = e.target.value;
+          bgCustomHexInput.value = e.target.value;
+          bgCustomSampleDot.style.backgroundColor = e.target.value;
+          render();
+        });
+
+        bgApplyHexBtn.addEventListener('click', function () {
+          if (!workingLogo) return;
+          var hex = bgCustomHexInput.value.trim();
+          if (!hex.startsWith('#')) hex = '#' + hex;
+          if (/^#[0-9A-Fa-f]{6}$/.test(hex) || /^#[0-9A-Fa-f]{3}$/.test(hex)) {
+            workingLogo.bgType = 'solid';
+            workingLogo.bgColor = hex;
+            bgCustomColorPicker.value = hex;
+            bgCustomSampleDot.style.backgroundColor = hex;
+            render();
+            showToast('Applied background color ' + hex, 'info');
+          } else {
+            showToast('Invalid HEX color format', 'error');
+          }
+        });
+
+        bgGradColor1Picker.addEventListener('input', function (e) {
+          if (!workingLogo || !workingLogo.gradient) return;
+          workingLogo.gradient.color1 = e.target.value;
+          bgGradColor1Hex.value = e.target.value;
+          render();
+        });
+        bgGradColor2Picker.addEventListener('input', function (e) {
+          if (!workingLogo || !workingLogo.gradient) return;
+          workingLogo.gradient.color2 = e.target.value;
+          bgGradColor2Hex.value = e.target.value;
+          render();
+        });
+        bgGradDirectionSelect.addEventListener('change', function (e) {
+          if (!workingLogo || !workingLogo.gradient) return;
+          workingLogo.gradient.direction = e.target.value;
+          render();
+        });
+
+        bgOpacityRange.addEventListener('input', function (e) {
+          if (!workingLogo) return;
+          workingLogo.bgOpacity = parseInt(e.target.value, 10);
+          bgOpacityValText.textContent = workingLogo.bgOpacity + '%';
+          render();
+        });
+
+        // Tab 3: Shapes Controls
+        addShapeBtn.addEventListener('click', function () {
+          if (!workingLogo) return;
+          if (!workingLogo.shapes) workingLogo.shapes = [];
+
+          var selectedType = shapeTypeSelect.value || 'circle';
+          var defaultColor = '#38BDF8';
+          if (selectedType === 'ellipse') defaultColor = '#A855F7';
+          else if (selectedType === 'square') defaultColor = '#EC4899';
+          else if (selectedType === 'rectangle') defaultColor = '#F59E0B';
+          else if (selectedType === 'rounded-rect') defaultColor = '#10B981';
+          else if (selectedType === 'pill') defaultColor = '#6366F1';
+          else if (selectedType === 'blob') defaultColor = '#F43F5E';
+          else if (selectedType === 'accent') defaultColor = '#EAB308';
+
+          var newShape = {
+            id: getNextShapeId(),
+            type: selectedType,
+            color: defaultColor,
+            width: 180,
+            height: 180,
+            x: 0,
+            y: 0,
+            rotation: 0,
+            opacity: 90,
+            visible: true,
+            locked: false
+          };
+
+          workingLogo.shapes.push(newShape);
+          state.selectedShapeId = newShape.id;
+          syncShapesControls();
+          render();
+          showToast('Added ' + selectedType + ' shape behind logo', 'success');
+        });
+
+        // Helper to find selected shape in workingLogo
+        function getSelectedShape() {
+          if (!workingLogo || !workingLogo.shapes) return null;
+          return workingLogo.shapes.find(function (s) { return s.id === state.selectedShapeId; });
+        }
+
+        shapeColorPicker.addEventListener('input', function (e) {
+          var s = getSelectedShape();
+          if (!s) return;
+          s.color = e.target.value;
+          shapeHexInput.value = e.target.value;
+          syncShapesControls();
+          render();
+        });
+
+        shapeHexInput.addEventListener('change', function (e) {
+          var s = getSelectedShape();
+          if (!s) return;
+          var hex = e.target.value.trim();
+          if (!hex.startsWith('#')) hex = '#' + hex;
+          if (/^#[0-9A-Fa-f]{6}$/.test(hex)) {
+            s.color = hex;
+            shapeColorPicker.value = hex;
+            syncShapesControls();
+            render();
+          }
+        });
+
+        shapeWidthRange.addEventListener('input', function (e) {
+          var s = getSelectedShape();
+          if (!s) return;
+          s.width = parseInt(e.target.value, 10);
+          shapeWidthValText.textContent = s.width + ' px';
+          render();
+        });
+
+        shapeHeightRange.addEventListener('input', function (e) {
+          var s = getSelectedShape();
+          if (!s) return;
+          s.height = parseInt(e.target.value, 10);
+          shapeHeightValText.textContent = s.height + ' px';
+          render();
+        });
+
+        shapePosXRange.addEventListener('input', function (e) {
+          var s = getSelectedShape();
+          if (!s) return;
+          s.x = parseInt(e.target.value, 10);
+          shapePosXValText.textContent = s.x + ' px';
+          render();
+        });
+
+        shapePosYRange.addEventListener('input', function (e) {
+          var s = getSelectedShape();
+          if (!s) return;
+          s.y = parseInt(e.target.value, 10);
+          shapePosYValText.textContent = s.y + ' px';
+          render();
+        });
+
+        shapeRotationRange.addEventListener('input', function (e) {
+          var s = getSelectedShape();
+          if (!s) return;
+          s.rotation = parseInt(e.target.value, 10);
+          shapeRotationValText.textContent = s.rotation + '°';
+          render();
+        });
+
+        shapeOpacityRange.addEventListener('input', function (e) {
+          var s = getSelectedShape();
+          if (!s) return;
+          s.opacity = parseInt(e.target.value, 10);
+          shapeOpacityValText.textContent = s.opacity + '%';
+          render();
+        });
+
+        shapeMoveUpBtn.addEventListener('click', function () {
+          if (!workingLogo || !workingLogo.shapes) return;
+          var idx = workingLogo.shapes.findIndex(function (s) { return s.id === state.selectedShapeId; });
+          if (idx !== -1 && idx < workingLogo.shapes.length - 1) {
+            var temp = workingLogo.shapes[idx];
+            workingLogo.shapes[idx] = workingLogo.shapes[idx + 1];
+            workingLogo.shapes[idx + 1] = temp;
+            syncShapesControls();
+            render();
+            showToast('Moved shape forward in layer order', 'info');
+          }
+        });
+
+        shapeMoveDownBtn.addEventListener('click', function () {
+          if (!workingLogo || !workingLogo.shapes) return;
+          var idx = workingLogo.shapes.findIndex(function (s) { return s.id === state.selectedShapeId; });
+          if (idx > 0) {
+            var temp = workingLogo.shapes[idx];
+            workingLogo.shapes[idx] = workingLogo.shapes[idx - 1];
+            workingLogo.shapes[idx - 1] = temp;
+            syncShapesControls();
+            render();
+            showToast('Moved shape backward in layer order', 'info');
+          }
+        });
+
+        shapeToggleVisibleBtn.addEventListener('click', function () {
+          var s = getSelectedShape();
+          if (!s) return;
+          s.visible = (s.visible === false) ? true : false;
+          syncShapesControls();
+          render();
+          showToast(s.visible ? 'Shape visible' : 'Shape hidden', 'info');
+        });
+
+        shapeToggleLockBtn.addEventListener('click', function () {
+          var s = getSelectedShape();
+          if (!s) return;
+          s.locked = !s.locked;
+          syncShapesControls();
+          showToast(s.locked ? 'Shape locked' : 'Shape unlocked', 'info');
+        });
+
+        shapeDuplicateBtn.addEventListener('click', function () {
+          var s = getSelectedShape();
+          if (!s) return;
+          var dup = Object.assign({}, s);
+          dup.id = getNextShapeId();
+          dup.x = (s.x || 0) + 15;
+          dup.y = (s.y || 0) + 15;
+          workingLogo.shapes.push(dup);
+          state.selectedShapeId = dup.id;
+          syncShapesControls();
+          render();
+          showToast('Duplicated shape', 'success');
+        });
+
+        shapeDeleteBtn.addEventListener('click', function () {
+          if (!workingLogo || !workingLogo.shapes) return;
+          var idx = workingLogo.shapes.findIndex(function (s) { return s.id === state.selectedShapeId; });
+          if (idx !== -1) {
+            workingLogo.shapes.splice(idx, 1);
+            state.selectedShapeId = workingLogo.shapes.length > 0 ? workingLogo.shapes[0].id : null;
+            syncShapesControls();
+            render();
+            showToast('Shape deleted', 'info');
+          }
+        });
+
+        // Canvas Guides & Fit
+        toggleCircleGuide.addEventListener('change', function (e) {
+          state.showCircleGuide = e.target.checked;
+          render();
+        });
+        toggleCrosshair.addEventListener('change', function (e) {
+          state.showCrosshair = e.target.checked;
+          render();
+        });
+
+        themeCheckerBtn.addEventListener('click', function () {
+          state.checkerTheme = (state.checkerTheme === 'light') ? 'dark' : 'light';
+          render();
+        });
+
+        canvasFitBtn.addEventListener('click', function () {
+          setupCanvasSize();
+          render();
+          showToast('Canvas view refitted', 'info');
+        });
+
+        copyActionBtn.addEventListener('click', function () {
+          if (workingLogo) copyLogoPNGToClipboard(workingLogo);
+        });
+        exportActionBtn.addEventListener('click', function () {
+          if (workingLogo) exportSingleLogoPNG(workingLogo);
+        });
+
+        // Direct Mouse Drag on Canvas
+        previewCanvas.addEventListener('mousedown', function (e) {
+          if (!workingLogo) return;
+          isDragging = true;
+          dragStartX = e.clientX;
+          dragStartY = e.clientY;
+
+          if (state.activeTab === 'shapes') {
+            var s = getSelectedShape();
+            if (s && !s.locked) {
+              dragTarget = 'shape';
+              initialOffsetX = s.x || 0;
+              initialOffsetY = s.y || 0;
+              return;
+            }
+          }
+
+          dragTarget = 'logo';
+          initialOffsetX = workingLogo.offsetX;
+          initialOffsetY = workingLogo.offsetY;
+        });
+
+        window.addEventListener('mousemove', function (e) {
+          if (!isDragging || !workingLogo) return;
+          var dx = e.clientX - dragStartX;
+          var dy = e.clientY - dragStartY;
+
+          if (dragTarget === 'shape') {
+            var s = getSelectedShape();
+            if (s && !s.locked) {
+              s.x = Math.max(-250, Math.min(250, initialOffsetX + dx));
+              s.y = Math.max(-250, Math.min(250, initialOffsetY + dy));
+              shapePosXRange.value = s.x;
+              shapePosXValText.textContent = s.x + ' px';
+              shapePosYRange.value = s.y;
+              shapePosYValText.textContent = s.y + ' px';
+              render();
+              return;
+            }
+          }
+
+          workingLogo.offsetX = Math.max(-250, Math.min(250, initialOffsetX + dx));
+          workingLogo.offsetY = Math.max(-250, Math.min(250, initialOffsetY + dy));
+          posXRange.value = workingLogo.offsetX;
+          posXValText.textContent = workingLogo.offsetX + ' px';
+          posYRange.value = workingLogo.offsetY;
+          posYValText.textContent = workingLogo.offsetY + ' px';
+          render();
+        });
+
+        window.addEventListener('mouseup', function () {
+          isDragging = false;
+        });
+
+        // Touch Drag on Canvas
+        previewCanvas.addEventListener('touchstart', function (e) {
+          if (!workingLogo || e.touches.length !== 1) return;
+          isDragging = true;
+          dragStartX = e.touches[0].clientX;
+          dragStartY = e.touches[0].clientY;
+
+          if (state.activeTab === 'shapes') {
+            var s = getSelectedShape();
+            if (s && !s.locked) {
+              dragTarget = 'shape';
+              initialOffsetX = s.x || 0;
+              initialOffsetY = s.y || 0;
+              return;
+            }
+          }
+
+          dragTarget = 'logo';
+          initialOffsetX = workingLogo.offsetX;
+          initialOffsetY = workingLogo.offsetY;
+        }, { passive: true });
+
+        window.addEventListener('touchmove', function (e) {
+          if (!isDragging || !workingLogo) return;
+          var dx = e.touches[0].clientX - dragStartX;
+          var dy = e.touches[0].clientY - dragStartY;
+
+          if (dragTarget === 'shape') {
+            var s = getSelectedShape();
+            if (s && !s.locked) {
+              s.x = Math.max(-250, Math.min(250, initialOffsetX + dx));
+              s.y = Math.max(-250, Math.min(250, initialOffsetY + dy));
+              shapePosXRange.value = s.x;
+              shapePosXValText.textContent = s.x + ' px';
+              shapePosYRange.value = s.y;
+              shapePosYValText.textContent = s.y + ' px';
+              render();
+              return;
+            }
+          }
+
+          workingLogo.offsetX = Math.max(-250, Math.min(250, initialOffsetX + dx));
+          workingLogo.offsetY = Math.max(-250, Math.min(250, initialOffsetY + dy));
+          posXRange.value = workingLogo.offsetX;
+          posXValText.textContent = workingLogo.offsetX + ' px';
+          posYRange.value = workingLogo.offsetY;
+          posYValText.textContent = workingLogo.offsetY + ' px';
+          render();
+        }, { passive: true });
+
+        window.addEventListener('touchend', function () {
+          isDragging = false;
+        });
+
+        // Mouse Wheel Zoom
+        previewCanvas.addEventListener('wheel', function (e) {
+          if (!workingLogo) return;
+          e.preventDefault();
+          var delta = e.deltaY < 0 ? 5 : -5;
+          workingLogo.zoom = Math.max(10, Math.min(400, workingLogo.zoom + delta));
+          syncControls();
+          render();
+        }, { passive: false });
+
+        previewCanvas.addEventListener('dblclick', function () {
+          if (!workingLogo) return;
+          workingLogo.offsetX = 0;
+          workingLogo.offsetY = 0;
+          syncControls();
+          render();
+          showToast('Centered logo position', 'info');
+        });
+
+        // Keyboard navigation
+        window.addEventListener('keydown', function (e) {
+          if (e.target.tagName === 'INPUT' && e.target.type === 'text') return;
+
+          if (e.key === 'Escape') {
+            if (!editorModal.classList.contains('hidden')) {
+              cancelEditorChanges();
+            }
+          }
+          if (!editorModal.classList.contains('hidden')) {
+            if (e.key === 'ArrowLeft' && e.altKey) navigateEditor(-1);
+            else if (e.key === 'ArrowRight' && e.altKey) navigateEditor(1);
+          }
+        });
+      }
+
+      window.addEventListener('DOMContentLoaded', init);
+    })();
+  </script>
+</body>
+</html>

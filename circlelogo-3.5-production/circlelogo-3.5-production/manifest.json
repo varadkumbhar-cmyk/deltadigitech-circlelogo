@@ -1,0 +1,16 @@
+{
+  "name": "CircleLogo 3.5 - Delta Digitech",
+  "short_name": "CircleLogo",
+  "description": "Enterprise bulk circular logo utility with Background & Shape Composer by Delta Digitech.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#F8FAFC",
+  "theme_color": "#4F46E5",
+  "icons": [
+    {
+      "src": "assets/delta-digitech-logo.png",
+      "sizes": "414x180",
+      "type": "image/png"
+    }
+  ]
+}
